@@ -1,5 +1,6 @@
-package com.nerisa.thesis.custodian;
+package com.nerisa.thesis.activity;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -10,22 +11,31 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.nerisa.thesis.constant.Key;
+import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.model.Monument;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
 
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private boolean mLocationPermissionGranted;
+    private LocationCallback mLocationCallback;
 
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -35,6 +45,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int DEFAULT_ZOOM = 15;
+
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
@@ -44,14 +55,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        Log.d(TAG, "Helloooooooooooooooo");
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
     }
+
 
     /**
      * Manipulates the map when it's available.
@@ -70,6 +82,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+
+        createLocationRequest();
+
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnInfoWindowClickListener(this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mMap.clear();
+        mLastKnownLocation = location;
+        LatLng currentPos = new LatLng(mLastKnownLocation.getLatitude(),
+                mLastKnownLocation.getLongitude());
+        mMap.addMarker(new MarkerOptions()
+                .position(currentPos)
+                .title("You are here"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
     }
 
     /**
@@ -89,12 +118,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            LatLng currentPos = new LatLng(mLastKnownLocation.getLatitude(),
+                                    mLastKnownLocation.getLongitude());
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(currentPos)
+                                    .title("Add your monument here")
+                                    .draggable(true));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
+
+//
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(mDefaultLocation)
+                                    .title("Add your monument here")
+                                    .draggable(true));
                             mMap.moveCamera(CameraUpdateFactory
                                     .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -102,7 +141,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 });
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }
@@ -165,8 +204,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mLastKnownLocation = null;
                 getLocationPermission();
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    protected void createLocationRequest() {
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        marker.showInfoWindow();
+        return false;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Intent addMonument = new Intent(this, MonumentInfoActivity.class);
+        LatLng markerPos = marker.getPosition();
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>");
+        Log.d(TAG, String.valueOf(markerPos.latitude));
+        Monument monument = new Monument();
+        monument.setLongitude(markerPos.longitude);
+        monument.setLatitude(markerPos.latitude);
+        addMonument.putExtra(Key.MONUMENT,monument);
+        startActivity(addMonument);
     }
 }

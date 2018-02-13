@@ -1,4 +1,4 @@
-package com.nerisa.thesis.custodian;
+package com.nerisa.thesis;
 
 import org.junit.Test;
 

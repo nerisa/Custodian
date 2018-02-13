@@ -1,0 +1,9 @@
+package com.nerisa.thesis.constant;
+
+/**
+ * Created by nerisa on 2/12/18.
+ */
+
+public class Key {
+    public static final String MONUMENT = "monument";
+}

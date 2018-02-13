@@ -1,4 +1,4 @@
-package com.nerisa.thesis.custodian;
+package com.nerisa.thesis;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
