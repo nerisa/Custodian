@@ -28,7 +28,8 @@ import com.nerisa.thesis.constant.Key;
 import com.nerisa.thesis.custodian.R;
 import com.nerisa.thesis.model.Monument;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerDragListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
 
@@ -36,6 +37,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private boolean mLocationPermissionGranted;
     private LocationCallback mLocationCallback;
+    private Monument monument = new Monument();
+    private boolean isMarkerDragged = false;
 
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -87,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerDragListener(this);
     }
 
     @Override
@@ -225,13 +229,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent addMonument = new Intent(this, MonumentInfoActivity.class);
+        if(!isMarkerDragged){
+            LatLng markerPos = marker.getPosition();
+            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>");
+            Log.d(TAG, String.valueOf(markerPos.latitude));
+            Log.d(TAG, String.valueOf(markerPos.longitude));
+            monument.setLongitude(markerPos.longitude);
+            monument.setLatitude(markerPos.latitude);
+        }
+
+
+
+
+        addMonument.putExtra(Key.MONUMENT,monument);
+        startActivity(addMonument);
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+        isMarkerDragged = true;
+        Log.d(TAG, "Marker is being dragged");
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+        Log.d(TAG, "Marker is being dragged");
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
         LatLng markerPos = marker.getPosition();
         Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>");
         Log.d(TAG, String.valueOf(markerPos.latitude));
-        Monument monument = new Monument();
+        Log.d(TAG, String.valueOf(markerPos.longitude));
         monument.setLongitude(markerPos.longitude);
         monument.setLatitude(markerPos.latitude);
-        addMonument.putExtra(Key.MONUMENT,monument);
-        startActivity(addMonument);
     }
 }

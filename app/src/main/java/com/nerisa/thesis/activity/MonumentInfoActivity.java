@@ -1,13 +1,15 @@
 package com.nerisa.thesis.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -19,30 +21,44 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Key;
 import com.nerisa.thesis.custodian.R;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.util.Utility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class MonumentInfoActivity extends AppCompatActivity {
 
     private static final String TAG = MonumentInfoActivity.class.getSimpleName();
+    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?APPID=f4e5b61f71a2ee7595ffa19d67e8aea2&units=metric";
     private Monument monument;
     private int REQUEST_CAMERA = 0, SELECT_FILE = 1;
     private ImageView mImageView;
     private String userChoosenTask;
+    private List<Address> addresses;
 
 
     private static String mFileName = null;
@@ -64,11 +80,36 @@ public class MonumentInfoActivity extends AppCompatActivity {
             monument = intent.getParcelableExtra(Key.MONUMENT);
         }
 
+        Log.d(TAG, "=====================================");
+        Log.d(TAG,String.valueOf(monument.getLatitude()));
+        Log.d(TAG,String.valueOf(monument.getLongitude()));
+
+        Geocoder geocoder = new Geocoder(MonumentInfoActivity.this);
+
+        try{
+            addresses = geocoder.getFromLocation(monument.getLatitude(), monument.getLongitude(), 1);
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+
+
         // Record to the external cache directory for visibility
         mFileName = getExternalCacheDir().getAbsolutePath();
 
 
         setContentView(R.layout.activity_monument_info);
+
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>");
+        Log.d(TAG, addresses.get(0).toString());
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>");
+        TextView monumentAddress = (TextView) findViewById(R.id.monument_location);
+        monumentAddress.setText(addresses.get(0).getAddressLine(0));
+
+
+        getTemperature(monument.getLatitude(), monument.getLongitude());
+
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.voice_layout);
         mRecordButton = new RecordButton(this);
@@ -376,6 +417,49 @@ public class MonumentInfoActivity extends AppCompatActivity {
             mPlayer.release();
             mPlayer = null;
         }
+    }
+
+    public void modifyAddress(View view){
+        Intent goBack = new Intent(this, MapsActivity.class);
+        startActivity(goBack);
+    }
+
+    private void getTemperature(double latitude, double longitude){
+        String tag_json_obj = "json_obj_req";
+        String url = WEATHER_API_URL + "&lat=" + latitude + "&lon=" + longitude;
+        final ProgressDialog pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Loading...");
+        pDialog.show();
+        final TextView temperatureView = (TextView) findViewById(R.id.temperature);
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, response.toString());
+                        try {
+                            JSONObject tempResponse = (JSONObject) response.get("main");
+                            Double temperature = (Double) tempResponse.get("temp");
+                            monument.setTemperature(temperature);
+                            temperatureView.setText("Current Surrounding Temperature: "+ Math.round(monument.getTemperature()) + " \u00b0C");
+                            Log.d(TAG,monument.getTemperature().toString());
+                            pDialog.hide();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                // hide the progress dialog
+            }
+
+        });
+        // Adding request to request queue
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(jsonObjReq,tag_json_obj);
     }
 
 

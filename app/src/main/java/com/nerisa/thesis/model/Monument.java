@@ -20,6 +20,8 @@ public class Monument implements Parcelable {
     private String monumentPhoto;
     private String noiseRecording;
 
+    private Double temperature;
+
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
         public Monument createFromParcel(Parcel in) {
             return new Monument(in);
@@ -103,6 +105,15 @@ public class Monument implements Parcelable {
     public void setNoiseRecording(String noiseRecording) {
         this.noiseRecording = noiseRecording;
     }
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(Double temperature) {
+        this.temperature = temperature;
+    }
+
 
     @Override
     public int describeContents() {
