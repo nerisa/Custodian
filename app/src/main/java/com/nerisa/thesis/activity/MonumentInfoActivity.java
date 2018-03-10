@@ -19,6 +19,9 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -34,6 +37,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Key;
 import com.nerisa.thesis.custodian.R;
@@ -50,6 +60,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import static com.nerisa.thesis.constant.Key.SHOW_TOAST;
+
 public class MonumentInfoActivity extends AppCompatActivity {
 
     private static final String TAG = MonumentInfoActivity.class.getSimpleName();
@@ -59,6 +71,10 @@ public class MonumentInfoActivity extends AppCompatActivity {
     private ImageView mImageView;
     private String userChoosenTask;
     private List<Address> addresses;
+
+    private static GoogleSignInClient mGoogleSignInClient;
+
+    private static final int RC_SIGN_IN = 9001;
 
 
     private static String mFileName = null;
@@ -79,6 +95,12 @@ public class MonumentInfoActivity extends AppCompatActivity {
         if (null != intent){
             monument = intent.getParcelableExtra(Key.MONUMENT);
         }
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        // Build a GoogleSignInClient with the options specified by gso.
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         Log.d(TAG, "=====================================");
         Log.d(TAG,String.valueOf(monument.getLatitude()));
@@ -128,6 +150,44 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
         mImageView = (ImageView) findViewById(R.id.monument_view);
 
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d(TAG, "=============menu created=============");
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.profile:
+                intent = new Intent(this, ProfileActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.notification:
+                intent = new Intent(this, NotificationActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.sign_out:
+                mGoogleSignInClient.signOut()
+                        .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                // [START_EXCLUDE]
+                                Intent intent = new Intent(MonumentInfoActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                // [END_EXCLUDE]
+                            }
+                        });
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

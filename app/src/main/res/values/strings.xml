@@ -1,11 +1,20 @@
 <resources>
-    <string name="app_name">Custodian</string>
+    <string name="app_name">MonuSense</string>
     <string name="title_activity_maps">Map</string>
-    <string name="add_monument_title">Become a custodian!</string>
+    <string name="app_title_contributor">Become a contributor!</string>
+    <string name="app_title_custodian">Become a custodian!</string>
+    <string name="app_title_visitor">No, I am just a visitor</string>
     <string name="add_monument_label_name">Name</string>
     <string name="add_monument_name">Name of the monument</string>
     <string name="add_monument_label_description">Tell us something about it</string>
     <string name="add_monument_creator">Who created it?</string>
     <string name="add_monument_location_change">Modify</string>
     <string name="add_monument_button">Add</string>
+    <string name="title_activity_login">Login</string>
+    <string name="skip">Skip</string>
+    <string name="menu_profile">Profile</string>
+    <string name="menu_notification">Notifications</string>
+    <string name="menu_logout">Log Out</string>
+
+
 </resources>

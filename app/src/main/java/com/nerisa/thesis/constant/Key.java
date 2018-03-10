@@ -6,4 +6,5 @@ package com.nerisa.thesis.constant;
 
 public class Key {
     public static final String MONUMENT = "monument";
+    public static final String SHOW_TOAST = "show toast";
 }
