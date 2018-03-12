@@ -31,19 +31,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Key;
 import com.nerisa.thesis.custodian.R;
@@ -59,34 +63,38 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
-import static com.nerisa.thesis.constant.Key.SHOW_TOAST;
 
 public class MonumentInfoActivity extends AppCompatActivity {
 
     private static final String TAG = MonumentInfoActivity.class.getSimpleName();
-    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?APPID=f4e5b61f71a2ee7595ffa19d67e8aea2&units=metric";
+
     private Monument monument;
+
     private int REQUEST_CAMERA = 0, SELECT_FILE = 1;
     private ImageView mImageView;
     private String userChoosenTask;
+    private static Uri monumentImageUri;
+
     private List<Address> addresses;
+    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?APPID=f4e5b61f71a2ee7595ffa19d67e8aea2&units=metric";
 
     private static GoogleSignInClient mGoogleSignInClient;
 
-    private static final int RC_SIGN_IN = 9001;
-
-
-    private static String mFileName = null;
-
+    private static String mNoiseFileName = null;
     private RecordButton mRecordButton = null;
     private MediaRecorder mRecorder = null;
-
     private PlayButton   mPlayButton = null;
     private MediaPlayer mPlayer = null;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
+
+    private StorageReference mStorageRef;
+
+    private static boolean isImageUploadDone = false;
+    private static boolean isAudioUploadDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,33 +110,19 @@ public class MonumentInfoActivity extends AppCompatActivity {
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        Log.d(TAG, "=====================================");
-        Log.d(TAG,String.valueOf(monument.getLatitude()));
-        Log.d(TAG,String.valueOf(monument.getLongitude()));
+        // Record to the external cache directory for visibility
+        mNoiseFileName = getExternalCacheDir().getAbsolutePath();
+
+        setContentView(R.layout.activity_monument_info);
 
         Geocoder geocoder = new Geocoder(MonumentInfoActivity.this);
-
         try{
             addresses = geocoder.getFromLocation(monument.getLatitude(), monument.getLongitude(), 1);
         } catch (IOException e){
             e.printStackTrace();
         }
-
-
-
-
-        // Record to the external cache directory for visibility
-        mFileName = getExternalCacheDir().getAbsolutePath();
-
-
-        setContentView(R.layout.activity_monument_info);
-
-        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>");
-        Log.d(TAG, addresses.get(0).toString());
-        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>");
         TextView monumentAddress = (TextView) findViewById(R.id.monument_location);
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
-
 
         getTemperature(monument.getLatitude(), monument.getLongitude());
 
@@ -149,7 +143,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
 //        setContentView(ll);
 
         mImageView = (ImageView) findViewById(R.id.monument_view);
-
+        mStorageRef = FirebaseStorage.getInstance().getReference();
     }
 
     @Override
@@ -164,7 +158,6 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d(TAG, "=============menu created=============");
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
@@ -184,6 +177,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             case R.id.sign_out:
+                FirebaseAuth.getInstance().signOut();
                 mGoogleSignInClient.signOut()
                         .addOnCompleteListener(this, new OnCompleteListener<Void>() {
                             @Override
@@ -203,7 +197,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Record to the external cache directory for visibility
-//        mFileName = getExternalCacheDir().getAbsolutePath();
+//        mNoiseFileName = getExternalCacheDir().getAbsolutePath();
 //        LinearLayout ll = (LinearLayout) findViewById(R.id.voice_layout);
 //        mRecordButton = new RecordButton(this);
 //        ll.addView(mRecordButton,
@@ -220,30 +214,6 @@ public class MonumentInfoActivity extends AppCompatActivity {
 //        setContentView(ll);
 
         mImageView = (ImageView) findViewById(R.id.monument_view);
-    }
-
-    public void addMonument(View button){
-        Log.d(TAG, "button clicked");
-
-        EditText monumentName = (EditText) findViewById(R.id.monument_name);
-        EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
-        EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
-
-        monument.setName(monumentName.getText().toString());
-        monument.setBuilder(monumentCreator.getText().toString());
-        monument.setDesc(monumentDesc.getText().toString());
-
-        Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        Log.d(TAG, String.valueOf(monument.getName()));
-        Log.d(TAG, String.valueOf(monument.getBuilder()));
-        Log.d(TAG, String.valueOf(monument.getDesc()));
-        Log.d(TAG, String.valueOf(monument.getLongitude()));
-        Log.d(TAG, String.valueOf(monument.getLatitude()));
-        Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
-        Log.d(TAG, String.valueOf(monument.getNoiseRecording()));
-        Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        return;
-
     }
 
     @Override
@@ -266,7 +236,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
         }
     }
 
-
+//========================Monument Image===================================
     public void selectImage(View imageButton) {
         final CharSequence[] items = { "Take Photo", "Choose from Library",
                 "Cancel" };
@@ -338,14 +308,13 @@ public class MonumentInfoActivity extends AppCompatActivity {
             destination.createNewFile();
             fo = new FileOutputStream(destination);
             fo.write(bytes.toByteArray());
-            monument.setMonumentPhoto(destination.getAbsolutePath());
             fo.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        monumentImageUri = Uri.fromFile(destination);
         mImageView.setImageBitmap(thumbnail);
     }
 
@@ -353,10 +322,8 @@ public class MonumentInfoActivity extends AppCompatActivity {
         try {
             if (data != null) {
                 Log.d(TAG, "data was not null");
-                Uri uri = data.getData();
-                monument.setMonumentPhoto(uri.toString());
-                Log.d(TAG, ">>>>>>>>>" + uri.toString() + ">>>kjk>>>>>");
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                monumentImageUri = data.getData();
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), monumentImageUri);
                 Log.d(TAG, "here"+ String.valueOf(bitmap));
                 mImageView.setImageBitmap(bitmap);
             } else {
@@ -371,6 +338,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
         }
     }
 
+//    =======================Record Audio=======================================
 
     private void onRecord(boolean start) {
 
@@ -393,7 +361,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
     private void startPlaying() {
         mPlayer = new MediaPlayer();
         try {
-            mPlayer.setDataSource(mFileName);
+            mPlayer.setDataSource(mNoiseFileName);
             mPlayer.prepare();
             mPlayer.start();
         } catch (IOException e) {
@@ -408,10 +376,10 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
     private void startRecording() {
         mRecorder = new MediaRecorder();
-        mFileName += System.currentTimeMillis() + ".3gp";
+        mNoiseFileName += System.currentTimeMillis() + ".3gp";
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(mFileName);
+        mRecorder.setOutputFile(mNoiseFileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
         try {
@@ -425,7 +393,6 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
     private void stopRecording() {
         mRecorder.stop();
-        monument.setNoiseRecording(mFileName);
         mRecorder.release();
         mRecorder = null;
     }
@@ -531,5 +498,89 @@ public class MonumentInfoActivity extends AppCompatActivity {
         AppController.getInstance(getApplicationContext()).addToRequestQueue(jsonObjReq,tag_json_obj);
     }
 
+
+    public void addMonument(View button){
+        Log.d(TAG, "button clicked");
+
+        EditText monumentName = (EditText) findViewById(R.id.monument_name);
+        EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
+        EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
+
+        monument.setName(monumentName.getText().toString());
+        monument.setBuilder(monumentCreator.getText().toString());
+        monument.setDesc(monumentDesc.getText().toString());
+        uploadImageToFirebase();
+        uploadAudioToFirebase();
+        return;
+    }
+
+    private void uploadImageToFirebase(){
+        Log.d(TAG, "image upload was called");
+        StorageReference imageRef = mStorageRef.child("images/" + UUID.randomUUID().toString());
+        imageRef.putFile(monumentImageUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get a URL to the uploaded content
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        monument.setMonumentPhoto(downloadUrl.toString());
+                        Log.d(TAG, "image upload was finished");
+                        isImageUploadDone = true;
+                        uploadMonumentData();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        Toast.makeText(MonumentInfoActivity.this, "The monument photo failed to upload. Please try again later.", Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+    }
+
+    private void uploadAudioToFirebase(){
+        Log.d(TAG, "audio upload was called");
+
+        StorageReference audioRef = mStorageRef.child("audio/" + UUID.randomUUID().toString());
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setContentType("audio/3gpp")
+                .build();
+        Uri audioUri = Uri.fromFile(new File(mNoiseFileName));
+        audioRef.putFile(audioUri, metadata)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get a URL to the uploaded content
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        monument.setNoiseRecording(downloadUrl.toString());
+                        Log.d(TAG, "audio upload was finished");
+                        isAudioUploadDone = true;
+                        uploadMonumentData();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        Toast.makeText(MonumentInfoActivity.this, "The monument noise profile failed to upload. Please try again later.", Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+
+    }
+
+    private void uploadMonumentData(){
+        if(isAudioUploadDone && isImageUploadDone){
+            Log.d(TAG,">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
+            Log.d(TAG, String.valueOf(monument.getName()));
+            Log.d(TAG, String.valueOf(monument.getBuilder()));
+            Log.d(TAG, String.valueOf(monument.getDesc()));
+            Log.d(TAG, String.valueOf(monument.getLongitude()));
+            Log.d(TAG, String.valueOf(monument.getLatitude()));
+            Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
+            Log.d(TAG, String.valueOf(monument.getNoiseRecording()));
+            Log.d(TAG, String.valueOf(monument.getTemperature()));
+            Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        }
+    }
 
 }
