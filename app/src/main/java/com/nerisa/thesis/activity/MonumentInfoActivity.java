@@ -48,8 +48,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
-import com.nerisa.thesis.constant.Key;
+import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.custodian.R;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.util.Utility;
@@ -96,12 +98,14 @@ public class MonumentInfoActivity extends AppCompatActivity {
     private static boolean isImageUploadDone = false;
     private static boolean isAudioUploadDone = false;
 
+    private static final String SERVER_URL = "http://192.168.0.103:8080/monument";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         if (null != intent){
-            monument = intent.getParcelableExtra(Key.MONUMENT);
+            monument = intent.getParcelableExtra(Constant.MONUMENT);
         }
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -507,7 +511,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
         EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
 
         monument.setName(monumentName.getText().toString());
-        monument.setBuilder(monumentCreator.getText().toString());
+        monument.setCreator(monumentCreator.getText().toString());
         monument.setDesc(monumentDesc.getText().toString());
         uploadImageToFirebase();
         uploadAudioToFirebase();
@@ -572,7 +576,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
         if(isAudioUploadDone && isImageUploadDone){
             Log.d(TAG,">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
             Log.d(TAG, String.valueOf(monument.getName()));
-            Log.d(TAG, String.valueOf(monument.getBuilder()));
+            Log.d(TAG, String.valueOf(monument.getCreator()));
             Log.d(TAG, String.valueOf(monument.getDesc()));
             Log.d(TAG, String.valueOf(monument.getLongitude()));
             Log.d(TAG, String.valueOf(monument.getLatitude()));
@@ -581,6 +585,33 @@ public class MonumentInfoActivity extends AppCompatActivity {
             Log.d(TAG, String.valueOf(monument.getTemperature()));
             Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         }
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(monument);
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(json);
+        } catch (JSONException e){
+            Log.d(TAG,"exception");
+        }
+
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, SERVER_URL, jsonObj,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d("Response", response.toString());
+                    }
+                }, new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // error
+                        Log.d("Error.Response", error.toString());
+                    }
+                });
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
     }
 
 }

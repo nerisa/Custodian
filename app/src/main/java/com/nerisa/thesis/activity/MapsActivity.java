@@ -6,7 +6,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -33,7 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.nerisa.thesis.constant.Key;
+import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.custodian.R;
 import com.nerisa.thesis.model.Monument;
 
@@ -304,7 +303,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-        addMonument.putExtra(Key.MONUMENT,monument);
+        addMonument.putExtra(Constant.MONUMENT,monument);
         startActivity(addMonument);
     }
 

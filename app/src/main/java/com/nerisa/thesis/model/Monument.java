@@ -1,10 +1,7 @@
 package com.nerisa.thesis.model;
 
-import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import java.io.Serializable;
 
 /**
  * Created by nerisa on 2/12/18.
@@ -16,7 +13,7 @@ public class Monument implements Parcelable {
     private String desc;
     private double longitude;
     private double latitude;
-    private String builder;
+    private String creator;
     private String monumentPhoto;
     private String noiseRecording;
 
@@ -37,7 +34,7 @@ public class Monument implements Parcelable {
     private Monument(Parcel in){
         this.name = in.readString();
         this.desc = in.readString();
-        this.builder = in.readString();
+        this.creator = in.readString();
         this.longitude = in.readDouble();
         this.latitude = in.readDouble();
     }
@@ -47,7 +44,7 @@ public class Monument implements Parcelable {
         this.desc = desc;
         this.longitude = longitude;
         this.latitude = latitude;
-        this.builder = creator;
+        this.creator = creator;
     }
 
     public String getName() {
@@ -82,12 +79,12 @@ public class Monument implements Parcelable {
         this.latitude = latitude;
     }
 
-    public String getBuilder() {
-        return builder;
+    public String getCreator() {
+        return creator;
     }
 
-    public void setBuilder(String builder) {
-        this.builder = builder;
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     public String getMonumentPhoto() {
@@ -124,7 +121,7 @@ public class Monument implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(name);
         parcel.writeString(desc);
-        parcel.writeString(builder);
+        parcel.writeString(creator);
         parcel.writeDouble(longitude);
         parcel.writeDouble(latitude);
     }
