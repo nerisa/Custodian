@@ -9,6 +9,7 @@ import android.os.Parcelable;
 
 public class Monument implements Parcelable {
 
+    private long id;
     private String name;
     private String desc;
     private double longitude;
@@ -37,14 +38,25 @@ public class Monument implements Parcelable {
         this.creator = in.readString();
         this.longitude = in.readDouble();
         this.latitude = in.readDouble();
+        this.temperature = in.readDouble();
+        this.id = in.readLong();
     }
 
-    public Monument(String name, String desc, double longitude, double latitude, String creator){
+    public Monument(String name, String desc, double longitude, double latitude, String creator, double temperature){
         this.name = name;
         this.desc = desc;
         this.longitude = longitude;
         this.latitude = latitude;
         this.creator = creator;
+        this.temperature = temperature;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getName() {
