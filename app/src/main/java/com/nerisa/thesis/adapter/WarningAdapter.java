@@ -15,6 +15,7 @@ import com.google.firebase.storage.StorageReference;
 import com.nerisa.thesis.custodian.R;
 import com.nerisa.thesis.model.Warning;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -58,7 +59,7 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.MyViewHo
             Log.d("??????", "called");
             Warning warning = warningList.get(position);
             holder.desc.setText(warning.getDesc());
-            holder.date.setText(warning.getDate().toString());
+            holder.date.setText(new Date(warning.getDate()).toString());
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReferenceFromUrl(warning.getImage());
             glide.using(new FirebaseImageLoader())

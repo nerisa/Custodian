@@ -358,7 +358,7 @@ public class WarningActivity extends AppCompatActivity {
         EditText warningDesc = (EditText) findViewById(R.id.new_warning_desc);
         warning = new Warning();
         warning.setDesc(warningDesc.getText().toString());
-        warning.setDate(new Date());
+        warning.setDate(new Date().getTime());
 
         uploadImageToFirebase();
             return;

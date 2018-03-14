@@ -10,12 +10,12 @@ public class Warning {
 
     private String desc;
     private String image;
-    private Date date;
+    private Long date;
     private boolean isVerified;
 
     public Warning(){}
 
-    public Warning(String desc, String image, Date date){
+    public Warning(String desc, String image, Long date){
         this.desc = desc;
         this.image = image;
         this.date = date;
@@ -38,11 +38,11 @@ public class Warning {
         this.image = image;
     }
 
-    public Date getDate() {
+    public Long getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(Long date) {
         this.date = date;
     }
 
