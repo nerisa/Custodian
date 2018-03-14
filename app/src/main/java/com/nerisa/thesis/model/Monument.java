@@ -32,15 +32,6 @@ public class Monument implements Parcelable {
 
     public Monument(){}
 
-    private Monument(Parcel in){
-        this.name = in.readString();
-        this.desc = in.readString();
-        this.creator = in.readString();
-        this.longitude = in.readDouble();
-        this.latitude = in.readDouble();
-        this.temperature = in.readDouble();
-        this.id = in.readLong();
-    }
 
     public Monument(String name, String desc, double longitude, double latitude, String creator, double temperature){
         this.name = name;
@@ -136,5 +127,17 @@ public class Monument implements Parcelable {
         parcel.writeString(creator);
         parcel.writeDouble(longitude);
         parcel.writeDouble(latitude);
+        parcel.writeString(monumentPhoto);
+        parcel.writeLong(id);
+    }
+
+    private Monument(Parcel in){
+        this.name = in.readString();
+        this.desc = in.readString();
+        this.creator = in.readString();
+        this.longitude = in.readDouble();
+        this.latitude = in.readDouble();
+        this.monumentPhoto = in.readString();
+        this.id = in.readLong();
     }
 }

@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,7 +30,7 @@ import com.nerisa.thesis.model.Monument;
 import java.io.IOException;
 import java.util.List;
 
-public class MonumentInfoActivity extends AppCompatActivity {
+public class PostsActivity extends AppCompatActivity {
 
     private static final String TAG = MonumentInfoActivity.class.getSimpleName();
     private static GoogleSignInClient mGoogleSignInClient;
@@ -41,8 +40,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_monument_info);
+        setContentView(R.layout.activity_posts);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -64,7 +62,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
 
 
-        Geocoder geocoder = new Geocoder(MonumentInfoActivity.this);
+        Geocoder geocoder = new Geocoder(PostsActivity.this);
         try{
             addresses = geocoder.getFromLocation(monument.getLatitude(), monument.getLongitude(), 1);
         } catch (IOException e){
@@ -78,19 +76,15 @@ public class MonumentInfoActivity extends AppCompatActivity {
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);
         TextView monumentCreator = (TextView) findViewById(R.id.creator);
-        TextView monumentDesc = (TextView) findViewById(R.id.desc);
         ImageView monumentImage = (ImageView) findViewById(R.id.image);
 
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
         monumentName.setText(monument.getName());
         monumentCreator.setText(monument.getCreator());
-        monumentDesc.setText("Family Trade is an American reality television series broadcast by Game Show Network (GSN). The show premiered on March 12, 2013, and continued to air new episodes until April 16, 2013. Filmed in Middlebury, Vermont, the series chronicles the daily activities of G. Stone Motors (pictured), a GMC and Ford car dealership that employs the barter system in selling its automobiles. The business is operated by its founder, Gardner Stone, his son and daughter, Todd and Darcy, and General Manager Travis Romano. The series features the shop's daily interaction with its customers, who bring in pigs, maple syrup, collectable dolls and other items for resale to make a down payment on a vehicle they are leasing or purchasing. Family Trade was part of GSN's attempt to broaden their programming beyond traditional game shows. The series was given unfavorable reviews by critics, and its television ratings fell over time, losing almost half of its audience between the series premiere and finale. ");
         Glide.with(this /* context */)
                 .using(new FirebaseImageLoader())
                 .load(storageReference)
                 .into(monumentImage);
-
-
     }
 
     @Override
@@ -120,7 +114,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 // [START_EXCLUDE]
-                                Intent intent = new Intent(MonumentInfoActivity.this, MainActivity.class);
+                                Intent intent = new Intent(PostsActivity.this, MainActivity.class);
                                 startActivity(intent);
                                 // [END_EXCLUDE]
                             }
@@ -128,17 +122,5 @@ public class MonumentInfoActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    public void showWarnings(View view){
-        Intent warningIntent = new Intent(MonumentInfoActivity.this, WarningActivity.class);
-        warningIntent.putExtra(Constant.MONUMENT, monument);
-        startActivity(warningIntent);
-    }
-
-    public void showPosts(View view){
-        Intent postsIntent = new Intent(MonumentInfoActivity.this, PostsActivity.class);
-        postsIntent.putExtra(Constant.MONUMENT, monument);
-        startActivity(postsIntent);
     }
 }

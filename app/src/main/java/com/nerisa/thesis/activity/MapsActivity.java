@@ -88,6 +88,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.
@@ -203,22 +204,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             LatLng currentPos = new LatLng(mLastKnownLocation.getLatitude(),
                                     mLastKnownLocation.getLongitude());
                             result[0] = currentPos;
-                            Marker addMonumentMarker = mMap.addMarker(new MarkerOptions()
+                            mMap.addMarker(new MarkerOptions()
                                     .position(currentPos)
                                     .title("Add your monument here")
                                     .draggable(true));
-//                            addMonumentMarker.setTag(ADD_MONUMENT_MARKER);
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
 //
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
                             result[0] = mDefaultLocation;
-                            Marker addMonumentMarker = mMap.addMarker(new MarkerOptions()
+                            mMap.addMarker(new MarkerOptions()
                                     .position(mDefaultLocation)
                                     .title("Add your monument here")
                                     .draggable(true));
-//                            addMonumentMarker.setTag(ADD_MONUMENT_MARKER);
                             mMap.moveCamera(CameraUpdateFactory
                                     .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -328,7 +327,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL +"/%1$s",
 //                            monumentId.toString());
             String url = String
-                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL +"/%1$s",
+                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
                             "1");
             JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                     new Response.Listener<JSONObject>()
@@ -338,6 +337,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // response
                             Log.d(TAG, response.toString());
                             Monument monument = new Gson().fromJson(response.toString(), Monument.class);
+                            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>");
+                            Log.d(TAG, monument.getMonumentPhoto());
+                            Log.d(TAG, monument.getName());
+                            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>");
                             Intent monumentInfo = new Intent(MapsActivity.this, MonumentInfoActivity.class);
                             monumentInfo.putExtra(Constant.MONUMENT, monument);
                             startActivity(monumentInfo);

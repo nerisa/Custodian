@@ -49,7 +49,9 @@
         <activity android:name="com.nerisa.thesis.activity.AddMonumentActivity" />
         <activity android:name="com.nerisa.thesis.activity.ProfileActivity" />
         <activity android:name="com.nerisa.thesis.activity.NotificationActivity" />
-        <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity"></activity>
+        <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity" />
+        <activity android:name="com.nerisa.thesis.activity.WarningActivity" />
+        <activity android:name="com.nerisa.thesis.activity.PostsActivity"></activity>
     </application>
 
 </manifest>

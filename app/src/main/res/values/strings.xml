@@ -15,6 +15,12 @@
     <string name="menu_profile">Profile</string>
     <string name="menu_notification">Notifications</string>
     <string name="menu_logout">Log Out</string>
-
+    <string name="desc_title">Description</string>
+    <string name="action_posts">Were you here?</string>
+    <string name="action_warnings">Do you see any warnings?</string>
+    <string name="warnings_title">Warnings</string>
+    <string name="warnings_none">No warnings have been posted for this monument.</string>
+    <string name="warning_new">Post a new warning</string>
+    <string name="warning_desc">What is the problem here?</string>
 
 </resources>
