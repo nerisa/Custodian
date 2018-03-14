@@ -22,5 +22,8 @@
     <string name="warnings_none">No warnings have been posted for this monument.</string>
     <string name="warning_new">Post a new warning</string>
     <string name="warning_desc">What is the problem here?</string>
+    <string name="posts_title">Posts</string>
+    <string name="post_new">Do you have anything to say about this place?</string>
+    <string name="posts_none">Noone has said anything about this monument yet.</string>
 
 </resources>

@@ -395,7 +395,7 @@ public class WarningActivity extends AppCompatActivity {
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
                         "1");
         Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(monument);
+        String json = gson.toJson(warning);
         JSONObject jsonObj = null;
         try {
             jsonObj = new JSONObject(json);
