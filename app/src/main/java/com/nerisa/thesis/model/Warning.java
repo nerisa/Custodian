@@ -1,17 +1,29 @@
 package com.nerisa.thesis.model;
 
-import java.util.Date;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 
 /**
  * Created by nerisa on 3/13/18.
  */
 
-public class Warning {
+public class Warning implements Parcelable {
 
     private String desc;
     private String image;
     private Long date;
     private boolean isVerified;
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Warning createFromParcel(Parcel in) {
+            return new Warning(in);
+        }
+
+        public Warning[] newArray(int size) {
+            return new Warning[size];
+        }
+    };
 
     public Warning(){}
 
@@ -19,7 +31,6 @@ public class Warning {
         this.desc = desc;
         this.image = image;
         this.date = date;
-        this.isVerified = false;
     }
 
     public String getDesc() {
@@ -46,13 +57,30 @@ public class Warning {
         this.date = date;
     }
 
-    public void verify(){
-        this.isVerified = true;
+    public void setVerify(boolean isVerified){
+        this.isVerified = isVerified;
     }
 
     public boolean isVerified(){
         return isVerified;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(desc);
+        parcel.writeString(image);
+        parcel.writeLong(date);
+    }
+
+    private Warning(Parcel in){
+        this.desc = in.readString();
+        this.image = in.readString();
+        this.date = in.readLong();
+    }
 
 }

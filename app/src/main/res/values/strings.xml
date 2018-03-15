@@ -25,5 +25,6 @@
     <string name="posts_title">Posts</string>
     <string name="post_new">Do you have anything to say about this place?</string>
     <string name="posts_none">Noone has said anything about this monument yet.</string>
-
+    <string name="action_verify">Verify</string>
+    <string name="action_false">False alarm</string>
 </resources>

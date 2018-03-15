@@ -50,6 +50,7 @@ import com.google.firebase.storage.UploadTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
+import com.nerisa.thesis.adapter.RecyclerTouchListener;
 import com.nerisa.thesis.adapter.WarningAdapter;
 import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.custodian.R;
@@ -147,6 +148,20 @@ public class WarningActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Warning warning = warningList.get(position);
+//                Toast.makeText(getApplicationContext(), warning.getDesc() + " is selected!", Toast.LENGTH_SHORT).show();
+                showWarningDetails(warning);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
+
         getWarnings();
 
         mImageView = (ImageView) findViewById(R.id.new_warning_image);
@@ -206,8 +221,8 @@ public class WarningActivity extends AppCompatActivity {
                         // response
                         Log.d(TAG, response.toString());
                         if(response.length() == 0){
-                            RelativeLayout layout = (RelativeLayout) findViewById(R.id.warnings_container);
-                            layout.setVisibility(View.GONE);
+//                            RelativeLayout layout = (RelativeLayout) findViewById(R.id.warnings_container);
+//                            layout.setVisibility(View.GONE);
                         } else {
                             TextView noWarningText = (TextView) findViewById(R.id.no_warning_content);
                             noWarningText.setVisibility(View.GONE);
@@ -424,5 +439,12 @@ public class WarningActivity extends AppCompatActivity {
             }
         });
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+    }
+
+    private void showWarningDetails(Warning warning){
+        Intent warningIntent = new Intent(WarningActivity.this, WarningInfoActivity.class);
+        warningIntent.putExtra(Constant.MONUMENT, monument);
+        warningIntent.putExtra(Constant.WARNING, warning);
+        startActivity(warningIntent);
     }
 }

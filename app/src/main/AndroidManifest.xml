@@ -51,7 +51,8 @@
         <activity android:name="com.nerisa.thesis.activity.NotificationActivity" />
         <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity" />
         <activity android:name="com.nerisa.thesis.activity.WarningActivity" />
-        <activity android:name="com.nerisa.thesis.activity.PostsActivity"></activity>
+        <activity android:name="com.nerisa.thesis.activity.PostsActivity" />
+        <activity android:name="com.nerisa.thesis.activity.WarningInfoActivity"></activity>
     </application>
 
 </manifest>
