@@ -12,7 +12,7 @@ import com.bumptech.glide.RequestManager;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
 import com.nerisa.thesis.model.Post;
 import com.nerisa.thesis.model.Warning;
 

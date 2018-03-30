@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nerisa.thesis.custodian">
+    package="com.nerisa.thesis">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -43,16 +43,45 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity
-            android:name="com.nerisa.thesis.activity.MapsActivity"
-            android:label="@string/title_activity_maps" />
-        <activity android:name="com.nerisa.thesis.activity.AddMonumentActivity" />
+        <activity android:name="com.nerisa.thesis.activity.MapsActivity" />
+        <activity android:name="com.nerisa.thesis.activity.AddMonumentActivity"
+            android:parentActivityName=".activity.MapsActivity"/>
         <activity android:name="com.nerisa.thesis.activity.ProfileActivity" />
         <activity android:name="com.nerisa.thesis.activity.NotificationActivity" />
-        <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity" />
-        <activity android:name="com.nerisa.thesis.activity.WarningActivity" />
-        <activity android:name="com.nerisa.thesis.activity.PostsActivity" />
-        <activity android:name="com.nerisa.thesis.activity.WarningInfoActivity"></activity>
+        <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity"
+            android:parentActivityName=".activity.MapsActivity"/>
+        <activity android:name="com.nerisa.thesis.activity.WarningActivity"
+            android:parentActivityName=".activity.MonumentInfoActivity"/>
+        <activity android:name="com.nerisa.thesis.activity.PostsActivity"
+            android:parentActivityName=".activity.MonumentInfoActivity"/>
+        <activity android:name=".activity.WarningInfoActivity"
+            android:parentActivityName=".activity.WarningActivity"/>
+
+        <service android:name=".service.MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <service android:name=".service.MyFirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!--
+     Set custom default icon. This is used when no icon is set for incoming notification messages.
+     See README(https://goo.gl/l4GJaQ) for more.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_ic_notification" />
+        <!--
+             Set color used with incoming notification messages. This is used when no color is set for the incoming
+             notification message. See README(https://goo.gl/6BKBk7) for more.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorIcon" />
     </application>
 
 </manifest>

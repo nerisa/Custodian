@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +10,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -21,7 +26,17 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.nerisa.thesis.custodian.R;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.nerisa.thesis.AppController;
+import com.nerisa.thesis.R;
+import com.nerisa.thesis.constant.Constant;
+import com.nerisa.thesis.model.Monument;
+import com.nerisa.thesis.model.User;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener {
@@ -124,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            sendNewUserDataToServer(user);
                             showMap();
                         } else {
                             // If sign in fails, display a message to the user.
@@ -134,4 +150,53 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 });
     }
+
+    private void sendNewUserDataToServer(FirebaseUser user){
+        User newUser = new User(user.getEmail(), FirebaseInstanceId.getInstance().getToken());
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(newUser);
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(json);
+        } catch (JSONException e){
+            Log.d(TAG,"exception");
+        }
+
+        String url = Constant.SERVER_URL + Constant.USER_URL;
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d(TAG, response.toString());
+                        storeUserData(response);
+
+                    }
+                }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // error
+                Log.d(TAG, error.toString());
+            }
+        });
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+    }
+
+    private void storeUserData(JSONObject response) {
+        User user = new Gson().fromJson(response.toString(), User.class);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(Constant.USER_TOKEN_KEY, user.getToken());
+        editor.putLong(Constant.USER_ID_KEY, user.getId());
+        editor.putBoolean(Constant.USER_CUSTODIAN_KEY, user.isCustodian());
+        editor.putString(Constant.USER_EMAIL_KEY, user.getEmail());
+        editor.commit();
+
+    }
+
+
 }

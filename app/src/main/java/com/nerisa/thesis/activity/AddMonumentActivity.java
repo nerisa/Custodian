@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Address;
@@ -52,7 +53,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.util.Utility;
 
@@ -567,8 +568,8 @@ public class AddMonumentActivity extends AppCompatActivity {
     }
 
     private void uploadMonumentData(){
-        if(isAudioUploadDone && isImageUploadDone){
-            Log.d(TAG,">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
+        if(isAudioUploadDone && isImageUploadDone) {
+            Log.d(TAG, ">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
             Log.d(TAG, String.valueOf(monument.getName()));
             Log.d(TAG, String.valueOf(monument.getCreator()));
             Log.d(TAG, String.valueOf(monument.getDesc()));
@@ -577,36 +578,29 @@ public class AddMonumentActivity extends AppCompatActivity {
             Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
             Log.d(TAG, String.valueOf(monument.getNoiseRecording()));
             Log.d(TAG, String.valueOf(monument.getTemperature()));
-            Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        }
+            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(monument);
-        JSONObject jsonObj = null;
-        try {
-            jsonObj = new JSONObject(json);
-        } catch (JSONException e){
-            Log.d(TAG,"exception");
-        }
+            SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+            monument.setUserId(pref.getLong(Constant.USER_ID_KEY, 0));
+            JSONObject jsonObj = monument.createJsonToSendToServer();
 
-        String url = Constant.SERVER_URL + Constant.MONUMENT_URL;
-        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // response
-                        Log.d(TAG, response.toString());
-                    }
-                }, new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // error
-                        Log.d(TAG, error.toString());
-                    }
-                });
-        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+            String url = Constant.SERVER_URL + Constant.MONUMENT_URL;
+            JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // response
+                            Log.d(TAG, response.toString());
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // error
+                    Log.d(TAG, error.toString());
+                }
+            });
+            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+        }
     }
 
 }
