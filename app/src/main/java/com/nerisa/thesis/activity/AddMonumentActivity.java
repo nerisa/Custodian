@@ -13,7 +13,6 @@ import android.location.Geocoder;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -49,8 +48,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.R;
@@ -130,6 +127,13 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         getTemperature(monument.getLatitude(), monument.getLongitude());
 
+        if (intent.hasExtra(Constant.MONUMENT_INFO_PRESENT)){
+            EditText monumentName = (EditText) findViewById(R.id.monument_name);
+            EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
+            EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
+            monumentName.setText(monument.getName());
+            monumentDesc.setText(monument.getDesc());
+        }
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.voice_layout);
         mRecordButton = new RecordButton(this);
@@ -235,8 +239,11 @@ public class AddMonumentActivity extends AppCompatActivity {
                 }
                 break;
             case Utility.REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    permissionToRecordAccepted = Boolean.TRUE;
+                    startRecording();
+                    break;
+                }
         }
     }
 
@@ -346,7 +353,6 @@ public class AddMonumentActivity extends AppCompatActivity {
     private void onRecord(boolean start) {
 
         if (start) {
-            Utility.checkAudioPermission(AddMonumentActivity.this);
             startRecording();
         } else {
             stopRecording();
@@ -378,20 +384,23 @@ public class AddMonumentActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        mRecorder = new MediaRecorder();
-        mNoiseFileName += System.currentTimeMillis() + ".3gp";
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(mNoiseFileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        boolean result = Utility.checkAudioPermission(AddMonumentActivity.this);
+        if(result) {
+            mRecorder = new MediaRecorder();
+            mNoiseFileName += System.currentTimeMillis() + ".3gp";
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mRecorder.setOutputFile(mNoiseFileName);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
+            try {
+                mRecorder.prepare();
+            } catch (IOException e) {
+                Log.e(TAG, "prepare() failed");
+            }
+
+            mRecorder.start();
         }
-
-        mRecorder.start();
     }
 
     private void stopRecording() {
@@ -405,6 +414,8 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         OnClickListener clicker = new OnClickListener() {
             public void onClick(View v) {
+                Log.d(TAG + "/RecordButton", "Record clicked");
+                permissionToRecordAccepted = Utility.checkAudioPermission(AddMonumentActivity.this);
                 onRecord(mStartRecording);
                 if (mStartRecording) {
                     setText("Stop recording");

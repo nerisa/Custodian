@@ -14,6 +14,8 @@ public class Constant {
     public static final String POST_URL = "/post";
     public static final String USER_URL = "/user";
     public static final String WIKI_API_URL = "https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=5000&gscoord=%1$s|%2$s&gsprop=type&format=json";
+    public static final String WIKI_REST_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/%1$s";
+    public static final String WIKI_PAGE_URL = "http://en.wikipedia.org/?curid=%1$s";
 
 
     public static final int NOTIFICATION_ID = 100;
@@ -27,5 +29,7 @@ public class Constant {
     public static final String USER_TOKEN_KEY = "regId";
     public static final String USER_CUSTODIAN_KEY = "custodian";
     public static final String USER_ID_KEY = "user_id";
+
+    public static final String MONUMENT_INFO_PRESENT = "from wiki info";
 
 }

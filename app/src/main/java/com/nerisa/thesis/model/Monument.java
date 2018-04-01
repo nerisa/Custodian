@@ -35,6 +35,7 @@ public class Monument implements Parcelable {
     private String noiseRecording;
     private Double temperature;
     private long userId;
+    private String reference;
 
     private static final String TAG = Monument.class.getSimpleName();
 
@@ -148,6 +149,7 @@ public class Monument implements Parcelable {
         parcel.writeString(monumentPhoto);
         parcel.writeLong(id);
         parcel.writeLong(userId);
+        parcel.writeString(reference);
     }
 
     private Monument(Parcel in){
@@ -159,6 +161,7 @@ public class Monument implements Parcelable {
         this.monumentPhoto = in.readString();
         this.id = in.readLong();
         this.userId = in.readLong();
+        this.reference = in.readString();
     }
 
     public JSONObject createJsonToSendToServer(){
@@ -198,6 +201,14 @@ public class Monument implements Parcelable {
         this.userId = userId;
     }
 
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
+
     public static Monument mapResponse(JSONObject response){
         Log.d(TAG, "Mapping response for " + response.toString());
         Monument monument = new Monument();
@@ -220,13 +231,41 @@ public class Monument implements Parcelable {
         Log.d(TAG, "Mapping wiki reponse: "+ response.toString());
         Monument monument = new Monument();
         try{
-            monument.setLongitude(response.getLong("lon"));
-            monument.setLatitude(response.getLong("lat"));
+            monument.setLongitude(response.getDouble("lon"));
+            monument.setLatitude(response.getDouble("lat"));
             monument.setName(response.getString("title"));
+            monument.setReference(String.valueOf(response.getLong("pageid")));
             //TODO page id
         }catch (JSONException e){
             Log.e(TAG, "Error parsing wiki response " + e.getStackTrace());
         }
         return monument;
+    }
+
+    public static Monument mapWikiDetailedResponse(JSONObject response){
+        Log.d(TAG, "Mapping detailed response from wiki: " + response.toString());
+        Monument monument = new Monument();
+        try{
+            monument.setName(response.getString("displaytitle"));
+            monument.setLatitude(response.getJSONObject("coordinates").getDouble("lat"));
+            monument.setLongitude(response.getJSONObject("coordinates").getDouble("lon"));
+            monument.setDesc(response.getString("extract"));
+            monument.setReference(String.format(Constant.WIKI_PAGE_URL, response.getLong("pageid")));
+            monument.setMonumentPhoto(response.getJSONObject("originalimage").getString("source"));
+        }catch (JSONException e){
+            Log.e(TAG, "Error parsing wiki response" + e.getStackTrace());
+        }
+        return monument;
+    }
+
+
+
+    @Override
+    public boolean equals(Object anotherMonument){
+        if (!Monument.class.isInstance(anotherMonument)){
+            return Boolean.FALSE;
+        }
+        Monument comparedMonument = (Monument) anotherMonument;
+        return (this.reference.equalsIgnoreCase(comparedMonument.getReference()));
     }
 }

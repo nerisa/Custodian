@@ -24,7 +24,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.nerisa.thesis.activity.MainActivity">
+        <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -43,19 +43,24 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name="com.nerisa.thesis.activity.MapsActivity" />
-        <activity android:name="com.nerisa.thesis.activity.AddMonumentActivity"
-            android:parentActivityName=".activity.MapsActivity"/>
-        <activity android:name="com.nerisa.thesis.activity.ProfileActivity" />
-        <activity android:name="com.nerisa.thesis.activity.NotificationActivity" />
-        <activity android:name="com.nerisa.thesis.activity.MonumentInfoActivity"
-            android:parentActivityName=".activity.MapsActivity"/>
-        <activity android:name="com.nerisa.thesis.activity.WarningActivity"
-            android:parentActivityName=".activity.MonumentInfoActivity"/>
-        <activity android:name="com.nerisa.thesis.activity.PostsActivity"
-            android:parentActivityName=".activity.MonumentInfoActivity"/>
-        <activity android:name=".activity.WarningInfoActivity"
-            android:parentActivityName=".activity.WarningActivity"/>
+        <activity android:name=".activity.MapsActivity" />
+        <activity
+            android:name=".activity.AddMonumentActivity"
+            android:parentActivityName=".activity.MapsActivity" />
+        <activity android:name=".activity.ProfileActivity" />
+        <activity android:name=".activity.NotificationActivity" />
+        <activity
+            android:name=".activity.MonumentInfoActivity"
+            android:parentActivityName=".activity.MapsActivity" />
+        <activity
+            android:name=".activity.WarningActivity"
+            android:parentActivityName=".activity.MonumentInfoActivity" />
+        <activity
+            android:name=".activity.PostsActivity"
+            android:parentActivityName=".activity.MonumentInfoActivity" />
+        <activity
+            android:name=".activity.WarningInfoActivity"
+            android:parentActivityName=".activity.WarningActivity" />
 
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>
@@ -82,6 +87,8 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorIcon" />
+
+        <activity android:name=".activity.WikiInfoActivity"></activity>
     </application>
 
 </manifest>
