@@ -42,7 +42,7 @@ import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.adapter.PostAdapter;
 import com.nerisa.thesis.adapter.WarningAdapter;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.model.Post;
 import com.nerisa.thesis.model.Warning;

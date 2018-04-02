@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -22,8 +24,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -38,35 +41,60 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.gson.Gson;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
+import com.nerisa.thesis.model.MarkerTag;
 import com.nerisa.thesis.model.Monument;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerDragListener {
+
+//TODO figure out what actually happens on resume, stop, pause
+//TODO check location permission flow
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerDragListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
 
     private GoogleMap mMap;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
+
     private boolean mLocationPermissionGranted;
-    private LocationCallback mLocationCallback;
+
     private Monument monument = new Monument();
     private boolean isMarkerDragged = false;
-    private static final String ADD_MONUMENT_MARKER = "new marker";
+
+    private static HashSet<Monument> wikiMonuments = new HashSet<Monument>();
+    private static HashSet<Monument> custodianMonuments = new HashSet<Monument>();
 
     private static GoogleSignInClient mGoogleSignInClient;
+
+    private static Boolean isNearbyRetrieved = Boolean.FALSE;
+    private static Boolean isWikiRetrieved = Boolean.FALSE;
 
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+
+    private Location mLastLocation;
+
+    // Google client to interact with Google API
+    private GoogleApiClient mGoogleApiClient;
+
+    private LocationRequest mLocationRequest;
+
+    // Location updates intervals in sec
+    private static int UPDATE_INTERVAL = 10000; // 10 sec
+    private static int FATEST_INTERVAL = 5000; // 5 sec
+    private static int DISPLACEMENT = 250; // 10 meters
 
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -81,7 +109,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (checkPlayServices()) {
+            // Building the GoogleApi client
+            buildGoogleApiClient();
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -91,6 +122,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
+
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
@@ -107,8 +139,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        checkPlayServices();
+
+        // Resuming the periodic location updates
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d(TAG, "=============menu created=============");
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
@@ -153,33 +212,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = map;
 
         // Prompt the user for permission.
-
         getLocationPermission();
 
         // Turn on the My Location layer and the related control on the map.
         updateLocationUI();
-
-        // Get the current location of the device and set the position of the map.
-        LatLng userPos = getDeviceLocation();
-        displayNearbyMonuments(userPos);
-
-        createLocationRequest();
-
-        mMap.setOnMarkerClickListener(this);
-        mMap.setOnInfoWindowClickListener(this);
-        mMap.setOnMarkerDragListener(this);
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        mMap.clear();
-        mLastKnownLocation = location;
-        LatLng currentPos = new LatLng(mLastKnownLocation.getLatitude(),
-                mLastKnownLocation.getLongitude());
+//        mMap.clear();
+        System.out.println("location changed called");
+        System.out.println("location changed ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]called");
+
+        mLastLocation = location;
+        LatLng currentPos = new LatLng(mLastLocation.getLatitude(),
+                mLastLocation.getLongitude());
         mMap.addMarker(new MarkerOptions()
                 .position(currentPos)
-                .title("You are here"));
+                .title("Add your monument here")
+                .draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
+        getNearbyMonuments(currentPos);
+        getWikiMonuments(currentPos);
+//        displayNearbyMonuments();
+    }
+
+    /**
+     * Creating location request object
+     * */
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FATEST_INTERVAL);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(DISPLACEMENT); // 10 meters
     }
 
     /**
@@ -190,45 +259,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
          */
-        final LatLng[] result = new LatLng[1];
+        LatLng currentPos = mDefaultLocation;
         try {
             if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            LatLng currentPos = new LatLng(mLastKnownLocation.getLatitude(),
-                                    mLastKnownLocation.getLongitude());
-                            result[0] = currentPos;
-                            mMap.addMarker(new MarkerOptions()
-                                    .position(currentPos)
-                                    .title("Add your monument here")
-                                    .draggable(true));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
-//
-                        } else {
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s", task.getException());
-                            result[0] = mDefaultLocation;
-                            mMap.addMarker(new MarkerOptions()
-                                    .position(mDefaultLocation)
-                                    .title("Add your monument here")
-                                    .draggable(true));
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
+                Log.d(TAG, "Location permission is granted. Getting device's location");
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                currentPos = new LatLng(mLastLocation.getLatitude(),
+                        mLastLocation.getLongitude());
+                SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+                Boolean isCustodian = pref.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
+                if(!isCustodian) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(currentPos)
+                            .title("Add your monument here")
+                            .draggable(true));
+                }
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
             }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
-        return result[0];
+        return currentPos;
     }
 
 
@@ -269,7 +320,68 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
-//        updateLocationUI();
+        updateLocationUI();
+    }
+
+    /**
+     * Creating google api client object
+     * */
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+    }
+
+    /**
+     * Method to verify google play services on the device
+     * */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil
+                .isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "This device is not supported.", Toast.LENGTH_LONG)
+                        .show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Google api callback methods
+     */
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
+                + result.getErrorCode());
+    }
+
+    @Override
+    public void onConnected(Bundle arg0) {
+
+        // Once connected with google api, get the location
+        LatLng userPos = getDeviceLocation();
+        getNearbyMonuments(userPos);
+        getWikiMonuments(userPos);
+//        displayNearbyMonuments();
+        createLocationRequest();
+
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerDragListener(this);
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int arg0) {
+        mGoogleApiClient.connect();
     }
 
     /**
@@ -286,19 +398,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
+                mLastLocation = null;
                 getLocationPermission();
             }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
-    }
-
-    protected void createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     @Override
@@ -310,115 +415,234 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onInfoWindowClick(Marker marker) {
         if(marker.getTag() == null) {
-            Intent addMonument = new Intent(this, AddMonumentActivity.class);
+            Intent addMonument = new Intent(MapsActivity.this, AddMonumentActivity.class);
             if (!isMarkerDragged) {
                 LatLng markerPos = marker.getPosition();
-                Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>");
-                Log.d(TAG, String.valueOf(markerPos.latitude));
-                Log.d(TAG, String.valueOf(markerPos.longitude));
+                Log.d(TAG, "Monument in (" + String.valueOf(markerPos.latitude) + "," + String.valueOf(markerPos.longitude) + ") is being added");
                 monument.setLongitude(markerPos.longitude);
                 monument.setLatitude(markerPos.latitude);
             }
             addMonument.putExtra(Constant.MONUMENT, monument);
             startActivity(addMonument);
         } else {
-            Long monumentId = (Long) marker.getTag();
-//            String url = String
-//                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL +"/%1$s",
-//                            monumentId.toString());
-            String url = String
-                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
-                            "1");
+            showMonumentInformation((MarkerTag) marker.getTag());
+        }
+    }
+
+    private void showMonumentInformation(MarkerTag marker) {
+        if (marker.getType() == MarkerTag.MarkerType.WIKI) {
+            String url = String.format(Constant.WIKI_REST_URL, marker.getWikiName());
+            Log.d(TAG, "Getting monument info from wiki: " + url);
             JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                    new Response.Listener<JSONObject>()
-                    {
+                    new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             // response
-                            Log.d(TAG, response.toString());
-                            Monument monument = new Gson().fromJson(response.toString(), Monument.class);
-                            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>");
-                            Log.d(TAG, monument.getMonumentPhoto());
-                            Log.d(TAG, monument.getName());
-                            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>");
+                            Log.d(TAG, "Got response for monument: " + response.toString());
+                            Monument monument = Monument.mapWikiDetailedResponse(response);
+                            Intent monumentInfo = new Intent(MapsActivity.this, WikiInfoActivity.class);
+                            monumentInfo.putExtra(Constant.MONUMENT, monument);
+                            startActivity(monumentInfo);
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // error
+                    Log.e("Error.Response", error.toString());
+                }
+            });
+            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+        } else if (marker.getType() == MarkerTag.MarkerType.MONUMENT) {
+            Long monumentId = (Long) marker.getMonumentId();
+            String url = String
+                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL + "/%1$s",
+                            monumentId.toString());
+//            String url = String
+//                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
+//                            "3");
+            Log.d(TAG, "Getting monument details with url: " + url);
+
+            JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // response
+                            Log.d(TAG, "Got response for monument: " + response.toString());
+                            Monument monument = Monument.mapResponse(response);
                             Intent monumentInfo = new Intent(MapsActivity.this, MonumentInfoActivity.class);
                             monumentInfo.putExtra(Constant.MONUMENT, monument);
                             startActivity(monumentInfo);
                         }
-                    }, new Response.ErrorListener()
-            {
+                    }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     // error
-                    Log.d("Error.Response", error.toString());
+                    Log.e("Error.Response", error.toString());
                 }
             });
-            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
-
+            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         }
     }
 
     @Override
     public void onMarkerDragStart(Marker marker) {
         isMarkerDragged = true;
-        Log.d(TAG, "Marker is being dragged");
     }
 
     @Override
-    public void onMarkerDrag(Marker marker) {
-        Log.d(TAG, "Marker is being dragged");
-    }
+    public void onMarkerDrag(Marker marker) {}
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
         LatLng markerPos = marker.getPosition();
-        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>");
-        Log.d(TAG, String.valueOf(markerPos.latitude));
-        Log.d(TAG, String.valueOf(markerPos.longitude));
         monument.setLongitude(markerPos.longitude);
         monument.setLatitude(markerPos.latitude);
     }
 
-    private void displayNearbyMonuments(LatLng userPos){
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENTS_URL +"?lat=%1$s&lon=%2$s",
-//                        userPos.latitude,
-//                        userPos.longitude);
+    private void getNearbyMonuments(LatLng userPos){
+        //TODO put actual coordinates
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENTS_URL +"?lat=%1$s&lon=%2$s",
-                        "48.624061",
-                        "2.444167");
+                        userPos.latitude,
+                        userPos.longitude);
+//        String url = String
+//                .format(Constant.SERVER_URL + Constant.MONUMENTS_URL +"?lat=%1$s&lon=%2$s",
+//                        "48.624061",
+//                        "2.444167");
+        Log.i(TAG, "Getting nearby monuments using url " + url);
         JsonArrayRequest postRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>()
                 {
                     @Override
                     public void onResponse(JSONArray response) {
                         // response
-                        Log.d("Response", response.toString());
+                        Log.d(TAG, "Nearby monuments: " + response.toString());
                         for(int i = 0; i< response.length(); i++){
                             try {
-                                Monument monument = new Gson().fromJson(response.get(i).toString(), Monument.class);
-                                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
-                                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
-                                        .position(monumentPos)
-                                        .title(monument.getName())
-                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
-                                        .draggable(false));
-                                monumentMarker.setTag(monument.getId());
+                                Monument monument = Monument.mapResponse((JSONObject) response.get(i));
+                                custodianMonuments.add(monument);
+//                                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+//                                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+//                                        .position(monumentPos)
+//                                        .title(monument.getName())
+//                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
+//                                        .draggable(false));
+//                                monumentMarker.setTag(monument.getId());
 
                             }catch (JSONException e){
                                 Log.w(TAG, "Could not parse monument data");
                             }
                         }
+                        isNearbyRetrieved = Boolean.TRUE;
+                        System.out.println("DOne nearby");
+                        displayNearbyMonuments();
                     }
                 }, new Response.ErrorListener()
         {
             @Override
             public void onErrorResponse(VolleyError error) {
                 // error
-                Log.d("Error.Response", error.toString());
+                Log.e(TAG, error.toString());
             }
         });
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+    }
+
+    private void getWikiMonuments(LatLng userPos){
+        String wikiApi = String.format(Constant.WIKI_API_URL, userPos.latitude, userPos.longitude);
+        Log.d(TAG + "/getWikiMonuments", "Getting wiki articles from " + wikiApi);
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, wikiApi, null,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d(TAG + "getWikiMonuments", "Response from wiki: " + response.toString());
+                        try {
+                            JSONObject outerObject = (JSONObject) response.get("query");
+                            JSONArray results = (JSONArray) outerObject.get("geosearch");
+                            for(int i=0; i < results.length(); i++){
+                                JSONObject result = (JSONObject) results.get(i);
+                                if(result.getString("type").equalsIgnoreCase("landmark")){
+                                    Log.d(TAG, "a monument found in wiki");
+                                    Monument monument = Monument.mapWikiResponse(result);
+                                    wikiMonuments.add(monument);
+//                                    LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+//                                    Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+//                                            .position(monumentPos)
+//                                            .title(monument.getName())
+//                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
+//                                            .draggable(false));
+//                                    monumentMarker.setTag(monument.getReference());
+
+                                }
+                            }
+
+                        }catch (JSONException e){
+                            Log.e(TAG, "Wiki response parse error: " + e.getStackTrace());
+                        }
+                        isWikiRetrieved = Boolean.TRUE;
+                        System.out.println("DOne wiki");
+                        displayNearbyMonuments();
+
+                    }
+                }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // error
+                Log.e(TAG, error.toString());
+            }
+        });
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+    }
+
+    /**
+     * Starting the location updates
+     * */
+    protected void startLocationUpdates() {
+        try {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
+        }catch (SecurityException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Stopping location updates
+     */
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
+
+    private void displayNearbyMonuments() {
+        if (isNearbyRetrieved && isWikiRetrieved) {
+            wikiMonuments.removeAll(custodianMonuments);
+            for (Monument monument : wikiMonuments) {
+                Log.d(TAG + "/displayNearbyMonuments", "Displaying Wiki info: " + monument.getName());
+                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+                        .position(monumentPos)
+                        .title(monument.getName())
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
+                        .draggable(false));
+                MarkerTag tag = new MarkerTag(monument.getReference(), monument.getName());
+                monumentMarker.setTag(tag);
+            }
+            for (Monument monument : custodianMonuments) {
+                Log.d(TAG + "/displayNearbyMonuments", "Displaying monument: " + monument.getName());
+                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+                        .position(monumentPos)
+                        .title(monument.getName())
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
+                        .draggable(false));
+                MarkerTag tag = new MarkerTag(monument.getId());
+                monumentMarker.setTag(tag);
+            }
+        }
     }
 }

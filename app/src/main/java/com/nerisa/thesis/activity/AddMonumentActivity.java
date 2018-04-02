@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Address;
@@ -12,7 +13,6 @@ import android.location.Geocoder;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -48,11 +48,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.util.Utility;
 
@@ -129,6 +127,13 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         getTemperature(monument.getLatitude(), monument.getLongitude());
 
+        if (intent.hasExtra(Constant.MONUMENT_INFO_PRESENT)){
+            EditText monumentName = (EditText) findViewById(R.id.monument_name);
+            EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
+            EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
+            monumentName.setText(monument.getName());
+            monumentDesc.setText(monument.getDesc());
+        }
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.voice_layout);
         mRecordButton = new RecordButton(this);
@@ -234,8 +239,11 @@ public class AddMonumentActivity extends AppCompatActivity {
                 }
                 break;
             case Utility.REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    permissionToRecordAccepted = Boolean.TRUE;
+                    startRecording();
+                    break;
+                }
         }
     }
 
@@ -345,7 +353,6 @@ public class AddMonumentActivity extends AppCompatActivity {
     private void onRecord(boolean start) {
 
         if (start) {
-            Utility.checkAudioPermission(AddMonumentActivity.this);
             startRecording();
         } else {
             stopRecording();
@@ -377,20 +384,23 @@ public class AddMonumentActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        mRecorder = new MediaRecorder();
-        mNoiseFileName += System.currentTimeMillis() + ".3gp";
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(mNoiseFileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        boolean result = Utility.checkAudioPermission(AddMonumentActivity.this);
+        if(result) {
+            mRecorder = new MediaRecorder();
+            mNoiseFileName += System.currentTimeMillis() + ".3gp";
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mRecorder.setOutputFile(mNoiseFileName);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
+            try {
+                mRecorder.prepare();
+            } catch (IOException e) {
+                Log.e(TAG, "prepare() failed");
+            }
+
+            mRecorder.start();
         }
-
-        mRecorder.start();
     }
 
     private void stopRecording() {
@@ -404,6 +414,8 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         OnClickListener clicker = new OnClickListener() {
             public void onClick(View v) {
+                Log.d(TAG + "/RecordButton", "Record clicked");
+                permissionToRecordAccepted = Utility.checkAudioPermission(AddMonumentActivity.this);
                 onRecord(mStartRecording);
                 if (mStartRecording) {
                     setText("Stop recording");
@@ -475,7 +487,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                         Log.d(TAG, response.toString());
                         try {
                             JSONObject tempResponse = (JSONObject) response.get("main");
-                            Double temperature = (Double) tempResponse.get("temp");
+                            Double temperature = (Double) tempResponse.getDouble("temp");
                             monument.setTemperature(temperature);
                             temperatureView.setText("Current Surrounding Temperature: "+ Math.round(monument.getTemperature()) + " \u00b0C");
                             Log.d(TAG,monument.getTemperature().toString());
@@ -507,6 +519,8 @@ public class AddMonumentActivity extends AppCompatActivity {
         monument.setName(monumentName.getText().toString());
         monument.setCreator(monumentCreator.getText().toString());
         monument.setDesc(monumentDesc.getText().toString());
+        isAudioUploadDone = Boolean.FALSE;
+        isImageUploadDone = Boolean.FALSE;
         uploadImageToFirebase();
         uploadAudioToFirebase();
         return;
@@ -567,46 +581,62 @@ public class AddMonumentActivity extends AppCompatActivity {
     }
 
     private void uploadMonumentData(){
-        if(isAudioUploadDone && isImageUploadDone){
-            Log.d(TAG,">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
-            Log.d(TAG, String.valueOf(monument.getName()));
-            Log.d(TAG, String.valueOf(monument.getCreator()));
-            Log.d(TAG, String.valueOf(monument.getDesc()));
-            Log.d(TAG, String.valueOf(monument.getLongitude()));
-            Log.d(TAG, String.valueOf(monument.getLatitude()));
-            Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
-            Log.d(TAG, String.valueOf(monument.getNoiseRecording()));
-            Log.d(TAG, String.valueOf(monument.getTemperature()));
-            Log.d(TAG,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        }
+        if(isAudioUploadDone && isImageUploadDone) {
+            Log.d(TAG, "Sending monument data to server:");
+            Log.d(TAG, ">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
+            Log.d(TAG, "name: " + String.valueOf(monument.getName()));
+            Log.d(TAG, "creator: " + String.valueOf(monument.getCreator()));
+            Log.d(TAG, "desc: " + String.valueOf(monument.getDesc()));
+            Log.d(TAG, "long: " + String.valueOf(monument.getLongitude()));
+            Log.d(TAG, "lat: " + String.valueOf(monument.getLatitude()));
+            Log.d(TAG, "photo: " + String.valueOf(monument.getMonumentPhoto()));
+            Log.d(TAG, "noise: " + String.valueOf(monument.getNoiseRecording()));
+            Log.d(TAG, "temperature: " + String.valueOf(monument.getTemperature()));
 
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(monument);
-        JSONObject jsonObj = null;
-        try {
-            jsonObj = new JSONObject(json);
-        } catch (JSONException e){
-            Log.d(TAG,"exception");
-        }
 
-        String url = Constant.SERVER_URL + Constant.MONUMENT_URL;
-        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // response
-                        Log.d(TAG, response.toString());
-                    }
-                }, new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // error
-                        Log.d(TAG, error.toString());
-                    }
-                });
-        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+            SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+            monument.setUserId(pref.getLong(Constant.USER_ID_KEY, 0));
+            Log.d(TAG, "user: " + monument.getUserId());
+            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+            JSONObject jsonObj = monument.createJsonToSendToServer();
+            Log.d(TAG, "Monument post request: " + jsonObj.toString());
+            String url = Constant.SERVER_URL + Constant.MONUMENT_URL;
+            JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // response
+                            Log.d(TAG, "Monument added successfully for this user");
+                            Log.d(TAG, response.toString());
+                            handleCreateMonumentResponse(response);
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // error
+                    System.out.println(">>>>>>volley error below>>>>>>>>>>");
+                    error.printStackTrace();
+                    Log.d(TAG, error.toString());
+                }
+            });
+            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+        }
+    }
+
+    private void handleCreateMonumentResponse(JSONObject response){
+        Monument monument = Monument.mapResponse(response);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.TRUE);
+        editor.putLong(Constant.MONUMENT_ID_KEY, monument.getId());
+        editor.apply();
+
+        Intent monumentInfo = new Intent(AddMonumentActivity.this, MonumentInfoActivity.class);
+        monumentInfo.putExtra(Constant.MONUMENT, monument);
+        startActivity(monumentInfo);
     }
 
 }

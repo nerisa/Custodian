@@ -58,7 +58,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:666275602982:android:ed7bec0391119005",
         "android_client_info": {
-          "package_name": "com.nerisa.thesis.custodian"
+          "package_name": "com.nerisa.thesis"
         }
       },
       "oauth_client": [
@@ -70,7 +70,7 @@
           "client_id": "666275602982-65bn6hjsmn316ncvql0aen5m4fef67s9.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.nerisa.thesis.custodian",
+            "package_name": "com.nerisa.thesis",
             "certificate_hash": "997decac10b9fca48043535076ebc6255dbd903f"
           }
         },

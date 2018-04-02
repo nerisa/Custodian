@@ -3,7 +3,7 @@ package com.nerisa.thesis.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.nerisa.thesis.custodian.R;
+import com.nerisa.thesis.R;
 
 public class ProfileActivity extends AppCompatActivity {
 

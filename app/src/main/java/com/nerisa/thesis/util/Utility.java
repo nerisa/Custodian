@@ -83,4 +83,13 @@ public class Utility {
             return true;
         }
     }
+
+    public static Long getMonumentChildResourceId(String uri){
+        int lastIndexOfSlash = uri.lastIndexOf("/");
+        if(lastIndexOfSlash == -1){
+            return Long.valueOf(uri);
+        } else {
+            return Long.valueOf(uri.substring(lastIndexOfSlash + 1));
+        }
+    }
 }

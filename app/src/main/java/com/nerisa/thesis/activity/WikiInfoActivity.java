@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.support.annotation.NonNull;
@@ -11,8 +12,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
@@ -24,14 +28,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.R;
+import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.model.Monument;
 
 import java.io.IOException;
 import java.util.List;
 
-public class MonumentInfoActivity extends AppCompatActivity {
+public class WikiInfoActivity extends AppCompatActivity {
 
     private static final String TAG = MonumentInfoActivity.class.getSimpleName();
     private static GoogleSignInClient mGoogleSignInClient;
@@ -41,8 +45,8 @@ public class MonumentInfoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_wiki_info);
 
-        setContentView(R.layout.activity_monument_info);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -64,15 +68,12 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
 
 
-        Geocoder geocoder = new Geocoder(MonumentInfoActivity.this);
+        Geocoder geocoder = new Geocoder(WikiInfoActivity.this);
         try{
             addresses = geocoder.getFromLocation(monument.getLatitude(), monument.getLongitude(), 1);
         } catch (IOException e){
             e.printStackTrace();
         }
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageReference = storage.getReferenceFromUrl(monument.getMonumentPhoto());
-//        StorageReference storageReference = storage.getReferenceFromUrl("https://firebasestorage.googleapis.com/v0/b/custodian-3e7c1.appspot.com/o/images%2Fb6cad247-9053-4956-82eb-cb9e1c6bd5cb?alt=media&token=ab602c71-302b-4413-b997-2b33ed05b1d9");
 
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);
@@ -85,9 +86,16 @@ public class MonumentInfoActivity extends AppCompatActivity {
         monumentCreator.setText(monument.getCreator());
         monumentDesc.setText(monument.getDesc());
         Glide.with(this /* context */)
-                .using(new FirebaseImageLoader())
-                .load(storageReference)
+                .load(monument.getMonumentPhoto())
                 .into(monumentImage);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        Boolean isCustodian = pref.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
+        if(isCustodian) {
+            LinearLayout outerLayout = (LinearLayout) findViewById(R.id.info_wrapper);
+            LinearLayout buttonWrapper = (LinearLayout) findViewById(R.id.button_wrapper);
+            outerLayout.removeView(buttonWrapper);
+        }
 
 
     }
@@ -119,7 +127,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 // [START_EXCLUDE]
-                                Intent intent = new Intent(MonumentInfoActivity.this, MainActivity.class);
+                                Intent intent = new Intent(WikiInfoActivity.this, MainActivity.class);
                                 startActivity(intent);
                                 // [END_EXCLUDE]
                             }
@@ -129,15 +137,10 @@ public class MonumentInfoActivity extends AppCompatActivity {
         }
     }
 
-    public void showWarnings(View view){
-        Intent warningIntent = new Intent(MonumentInfoActivity.this, WarningActivity.class);
-        warningIntent.putExtra(Constant.MONUMENT, monument);
-        startActivity(warningIntent);
-    }
-
-    public void showPosts(View view){
-        Intent postsIntent = new Intent(MonumentInfoActivity.this, PostsActivity.class);
-        postsIntent.putExtra(Constant.MONUMENT, monument);
-        startActivity(postsIntent);
+    public void becomeCustodian(View view){
+        Intent addMonument = new Intent(WikiInfoActivity.this, AddMonumentActivity.class);
+        addMonument.putExtra(Constant.MONUMENT, monument);
+        addMonument.putExtra(Constant.MONUMENT_INFO_PRESENT, "show monument info");
+        startActivity(addMonument);
     }
 }
