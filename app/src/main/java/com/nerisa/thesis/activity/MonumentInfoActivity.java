@@ -83,7 +83,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
         monumentName.setText(monument.getName());
         monumentCreator.setText(monument.getCreator());
-        monumentDesc.setText("Family Trade is an American reality television series broadcast by Game Show Network (GSN). The show premiered on March 12, 2013, and continued to air new episodes until April 16, 2013. Filmed in Middlebury, Vermont, the series chronicles the daily activities of G. Stone Motors (pictured), a GMC and Ford car dealership that employs the barter system in selling its automobiles. The business is operated by its founder, Gardner Stone, his son and daughter, Todd and Darcy, and General Manager Travis Romano. The series features the shop's daily interaction with its customers, who bring in pigs, maple syrup, collectable dolls and other items for resale to make a down payment on a vehicle they are leasing or purchasing. Family Trade was part of GSN's attempt to broaden their programming beyond traditional game shows. The series was given unfavorable reviews by critics, and its television ratings fell over time, losing almost half of its audience between the series premiere and finale. ");
+        monumentDesc.setText(monument.getDesc());
         Glide.with(this /* context */)
                 .using(new FirebaseImageLoader())
                 .load(storageReference)

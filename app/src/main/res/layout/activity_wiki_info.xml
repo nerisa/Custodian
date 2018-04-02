@@ -6,6 +6,7 @@
     android:fillViewport="true">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/info_wrapper"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -86,6 +87,7 @@
 
 
         <LinearLayout
+            android:id="@+id/button_wrapper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="horizontal"
@@ -94,6 +96,7 @@
             android:layout_marginTop="10dp">
 
             <Button
+                android:id="@+id/custodian_prompt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/app_title_custodian"

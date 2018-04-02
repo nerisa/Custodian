@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void startSignIn(){
-        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>here>>>");
+        Log.d(TAG, "Starting the sign in process");
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -114,7 +114,9 @@ public class MainActivity extends AppCompatActivity implements
 
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
+
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            Log.d(TAG,"User signed in successfully for " + account.getEmail());
             firebaseAuthWithGoogle(account);
             // Signed in successfully, show authenticated UI.
 
@@ -152,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void sendNewUserDataToServer(FirebaseUser user){
+        Log.d(TAG, "Sending signed in user's data to server: " + user.getEmail());
         User newUser = new User(user.getEmail(), FirebaseInstanceId.getInstance().getToken());
 
         Gson gson = new GsonBuilder().create();
@@ -170,7 +173,8 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onResponse(JSONObject response) {
                         // response
-                        Log.d(TAG, response.toString());
+
+                        Log.d(TAG, "User registered with the server: " + response.toString());
                         storeUserData(response);
 
                     }
@@ -187,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void storeUserData(JSONObject response) {
         User user = new Gson().fromJson(response.toString(), User.class);
-
+        Log.d(TAG, "Storing user's data in the app: " + user.getEmail());
         SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(Constant.USER_TOKEN_KEY, user.getToken());

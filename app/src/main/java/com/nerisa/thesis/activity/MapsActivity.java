@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -51,9 +52,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
+//TODO figure out what actually happens on resume, stop, pause
+//TODO check location permission flow
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerDragListener {
 
@@ -66,10 +71,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Monument monument = new Monument();
     private boolean isMarkerDragged = false;
 
-    private static List<Monument> wikiMonuments = new ArrayList<>();
-    private static List<Monument> custodianMonuments = new ArrayList<>();
+    private static HashSet<Monument> wikiMonuments = new HashSet<Monument>();
+    private static HashSet<Monument> custodianMonuments = new HashSet<Monument>();
 
     private static GoogleSignInClient mGoogleSignInClient;
+
+    private static Boolean isNearbyRetrieved = Boolean.FALSE;
+    private static Boolean isWikiRetrieved = Boolean.FALSE;
 
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -216,6 +224,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
 //        mMap.clear();
+        System.out.println("location changed called");
+        System.out.println("location changed ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]called");
+
         mLastLocation = location;
         LatLng currentPos = new LatLng(mLastLocation.getLatitude(),
                 mLastLocation.getLongitude());
@@ -226,7 +237,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
         getNearbyMonuments(currentPos);
         getWikiMonuments(currentPos);
-        displayNearbyMonuments();
+//        displayNearbyMonuments();
     }
 
     /**
@@ -255,10 +266,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 currentPos = new LatLng(mLastLocation.getLatitude(),
                         mLastLocation.getLongitude());
-                mMap.addMarker(new MarkerOptions()
-                        .position(currentPos)
-                        .title("Add your monument here")
-                        .draggable(true));
+                SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+                Boolean isCustodian = pref.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
+                if(!isCustodian) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(currentPos)
+                            .title("Add your monument here")
+                            .draggable(true));
+                }
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
             }
         } catch (SecurityException e) {
@@ -355,7 +370,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng userPos = getDeviceLocation();
         getNearbyMonuments(userPos);
         getWikiMonuments(userPos);
-        displayNearbyMonuments();
+//        displayNearbyMonuments();
         createLocationRequest();
 
         mMap.setOnMarkerClickListener(this);
@@ -513,10 +528,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
 //                                        .draggable(false));
 //                                monumentMarker.setTag(monument.getId());
+
                             }catch (JSONException e){
                                 Log.w(TAG, "Could not parse monument data");
                             }
                         }
+                        isNearbyRetrieved = Boolean.TRUE;
+                        System.out.println("DOne nearby");
+                        displayNearbyMonuments();
                     }
                 }, new Response.ErrorListener()
         {
@@ -555,11 +574,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
 //                                            .draggable(false));
 //                                    monumentMarker.setTag(monument.getReference());
+
                                 }
                             }
+
                         }catch (JSONException e){
                             Log.e(TAG, "Wiki response parse error: " + e.getStackTrace());
                         }
+                        isWikiRetrieved = Boolean.TRUE;
+                        System.out.println("DOne wiki");
+                        displayNearbyMonuments();
 
                     }
                 }, new Response.ErrorListener()
@@ -594,29 +618,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mGoogleApiClient, this);
     }
 
-    private void displayNearbyMonuments(){
-        wikiMonuments.removeAll(custodianMonuments);
-        for(Monument monument: wikiMonuments){
-            Log.d(TAG + "/displayNearbyMonuments", "Displaying Wiki info: " + monument.getName());
-            LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
-            Marker monumentMarker = mMap.addMarker(new MarkerOptions()
-                    .position(monumentPos)
-                    .title(monument.getName())
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
-                    .draggable(false));
-            MarkerTag tag = new MarkerTag(monument.getReference(), monument.getName());
-            monumentMarker.setTag(tag);
-        }
-        for(Monument monument: custodianMonuments){
-            Log.d(TAG + "/displayNearbyMonuments", "Displaying monument: " + monument.getName());
-            LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
-            Marker monumentMarker = mMap.addMarker(new MarkerOptions()
-                    .position(monumentPos)
-                    .title(monument.getName())
-                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
-                    .draggable(false));
-            MarkerTag tag = new MarkerTag(monument.getId());
-            monumentMarker.setTag(tag);
+    private void displayNearbyMonuments() {
+        if (isNearbyRetrieved && isWikiRetrieved) {
+            wikiMonuments.removeAll(custodianMonuments);
+            for (Monument monument : wikiMonuments) {
+                Log.d(TAG + "/displayNearbyMonuments", "Displaying Wiki info: " + monument.getName());
+                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+                        .position(monumentPos)
+                        .title(monument.getName())
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
+                        .draggable(false));
+                MarkerTag tag = new MarkerTag(monument.getReference(), monument.getName());
+                monumentMarker.setTag(tag);
+            }
+            for (Monument monument : custodianMonuments) {
+                Log.d(TAG + "/displayNearbyMonuments", "Displaying monument: " + monument.getName());
+                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
+                Marker monumentMarker = mMap.addMarker(new MarkerOptions()
+                        .position(monumentPos)
+                        .title(monument.getName())
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_monument))
+                        .draggable(false));
+                MarkerTag tag = new MarkerTag(monument.getId());
+                monumentMarker.setTag(tag);
+            }
         }
     }
 }

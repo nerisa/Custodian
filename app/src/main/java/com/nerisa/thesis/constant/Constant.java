@@ -29,6 +29,7 @@ public class Constant {
     public static final String USER_TOKEN_KEY = "regId";
     public static final String USER_CUSTODIAN_KEY = "custodian";
     public static final String USER_ID_KEY = "user_id";
+    public static final String MONUMENT_ID_KEY = "monument_id";
 
     public static final String MONUMENT_INFO_PRESENT = "from wiki info";
 

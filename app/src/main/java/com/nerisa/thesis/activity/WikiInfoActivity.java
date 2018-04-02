@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.support.annotation.NonNull;
@@ -11,7 +12,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,6 +88,15 @@ public class WikiInfoActivity extends AppCompatActivity {
         Glide.with(this /* context */)
                 .load(monument.getMonumentPhoto())
                 .into(monumentImage);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        Boolean isCustodian = pref.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
+        if(isCustodian) {
+            LinearLayout outerLayout = (LinearLayout) findViewById(R.id.info_wrapper);
+            LinearLayout buttonWrapper = (LinearLayout) findViewById(R.id.button_wrapper);
+            outerLayout.removeView(buttonWrapper);
+        }
+
 
     }
 

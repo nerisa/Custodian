@@ -8,6 +8,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.constant.Constant;
+import com.nerisa.thesis.util.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -187,6 +188,7 @@ public class Monument implements Parcelable {
             jsonObj.put("temperatures", temperatureList);
             jsonObj.put("noiseProfiles", noiseDataList);
             jsonObj.put("custodian", user.createJsonObjectForServer());
+            jsonObj.put("reference", reference);
         } catch (JSONException e){
             e.printStackTrace();
         }
@@ -221,6 +223,9 @@ public class Monument implements Parcelable {
             monument.setMonumentPhoto(response.getString("monumentPhoto"));
             JSONObject user = response.getJSONObject("custodian");
             monument.setUserId(user.getLong("id"));
+            if(response.has("reference")){
+                monument.setReference(response.getString("reference"));
+            }
         }catch (JSONException e){
             e.printStackTrace();
         }
@@ -234,7 +239,7 @@ public class Monument implements Parcelable {
             monument.setLongitude(response.getDouble("lon"));
             monument.setLatitude(response.getDouble("lat"));
             monument.setName(response.getString("title"));
-            monument.setReference(String.valueOf(response.getLong("pageid")));
+            monument.setReference(String.format(Constant.WIKI_PAGE_URL, response.getLong("pageid")));
             //TODO page id
         }catch (JSONException e){
             Log.e(TAG, "Error parsing wiki response " + e.getStackTrace());
@@ -262,10 +267,26 @@ public class Monument implements Parcelable {
 
     @Override
     public boolean equals(Object anotherMonument){
-        if (!Monument.class.isInstance(anotherMonument)){
-            return Boolean.FALSE;
+        if (anotherMonument == null)
+                return Boolean.FALSE;
+        if(anotherMonument instanceof Monument) {
+            Monument comparedMonument = (Monument) anotherMonument;
+            if (this.reference == null || this.reference == "" || comparedMonument.getReference() == null || comparedMonument.getReference() == "") {
+                return Boolean.FALSE;
+            } else {
+                boolean result = this.reference.equalsIgnoreCase(comparedMonument.getReference());
+                System.out.println("result: " + result);
+                return (result);
+            }
         }
-        Monument comparedMonument = (Monument) anotherMonument;
-        return (this.reference.equalsIgnoreCase(comparedMonument.getReference()));
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (reference == null ? 0 : reference.hashCode());
+        return result;
     }
 }

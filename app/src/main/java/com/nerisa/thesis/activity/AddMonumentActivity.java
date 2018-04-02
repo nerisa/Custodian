@@ -487,7 +487,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                         Log.d(TAG, response.toString());
                         try {
                             JSONObject tempResponse = (JSONObject) response.get("main");
-                            Double temperature = (Double) tempResponse.get("temp");
+                            Double temperature = (Double) tempResponse.getDouble("temp");
                             monument.setTemperature(temperature);
                             temperatureView.setText("Current Surrounding Temperature: "+ Math.round(monument.getTemperature()) + " \u00b0C");
                             Log.d(TAG,monument.getTemperature().toString());
@@ -519,6 +519,8 @@ public class AddMonumentActivity extends AppCompatActivity {
         monument.setName(monumentName.getText().toString());
         monument.setCreator(monumentCreator.getText().toString());
         monument.setDesc(monumentDesc.getText().toString());
+        isAudioUploadDone = Boolean.FALSE;
+        isImageUploadDone = Boolean.FALSE;
         uploadImageToFirebase();
         uploadAudioToFirebase();
         return;
@@ -580,38 +582,61 @@ public class AddMonumentActivity extends AppCompatActivity {
 
     private void uploadMonumentData(){
         if(isAudioUploadDone && isImageUploadDone) {
+            Log.d(TAG, "Sending monument data to server:");
             Log.d(TAG, ">>>>>>>>>>>>>monument data>>>>>>>>>>>>>>>>");
-            Log.d(TAG, String.valueOf(monument.getName()));
-            Log.d(TAG, String.valueOf(monument.getCreator()));
-            Log.d(TAG, String.valueOf(monument.getDesc()));
-            Log.d(TAG, String.valueOf(monument.getLongitude()));
-            Log.d(TAG, String.valueOf(monument.getLatitude()));
-            Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
-            Log.d(TAG, String.valueOf(monument.getNoiseRecording()));
-            Log.d(TAG, String.valueOf(monument.getTemperature()));
-            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            Log.d(TAG, "name: " + String.valueOf(monument.getName()));
+            Log.d(TAG, "creator: " + String.valueOf(monument.getCreator()));
+            Log.d(TAG, "desc: " + String.valueOf(monument.getDesc()));
+            Log.d(TAG, "long: " + String.valueOf(monument.getLongitude()));
+            Log.d(TAG, "lat: " + String.valueOf(monument.getLatitude()));
+            Log.d(TAG, "photo: " + String.valueOf(monument.getMonumentPhoto()));
+            Log.d(TAG, "noise: " + String.valueOf(monument.getNoiseRecording()));
+            Log.d(TAG, "temperature: " + String.valueOf(monument.getTemperature()));
+
 
             SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
             monument.setUserId(pref.getLong(Constant.USER_ID_KEY, 0));
-            JSONObject jsonObj = monument.createJsonToSendToServer();
+            Log.d(TAG, "user: " + monument.getUserId());
+            Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
+            JSONObject jsonObj = monument.createJsonToSendToServer();
+            Log.d(TAG, "Monument post request: " + jsonObj.toString());
             String url = Constant.SERVER_URL + Constant.MONUMENT_URL;
             JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             // response
+                            Log.d(TAG, "Monument added successfully for this user");
                             Log.d(TAG, response.toString());
+                            handleCreateMonumentResponse(response);
+
                         }
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     // error
+                    System.out.println(">>>>>>volley error below>>>>>>>>>>");
+                    error.printStackTrace();
                     Log.d(TAG, error.toString());
                 }
             });
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         }
+    }
+
+    private void handleCreateMonumentResponse(JSONObject response){
+        Monument monument = Monument.mapResponse(response);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.TRUE);
+        editor.putLong(Constant.MONUMENT_ID_KEY, monument.getId());
+        editor.apply();
+
+        Intent monumentInfo = new Intent(AddMonumentActivity.this, MonumentInfoActivity.class);
+        monumentInfo.putExtra(Constant.MONUMENT, monument);
+        startActivity(monumentInfo);
     }
 
 }
