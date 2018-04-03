@@ -27,7 +27,6 @@
         <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -47,8 +46,10 @@
         <activity
             android:name=".activity.AddMonumentActivity"
             android:parentActivityName=".activity.MapsActivity" />
-        <activity android:name=".activity.ProfileActivity" />
-        <activity android:name=".activity.NotificationActivity" />
+        <activity android:name=".activity.ProfileActivity"/>
+
+        <activity android:name=".activity.NotificationActivity"
+            android:parentActivityName=".activity.MapsActivity"/>
         <activity
             android:name=".activity.MonumentInfoActivity"
             android:parentActivityName=".activity.MapsActivity" />
@@ -59,8 +60,8 @@
             android:name=".activity.PostsActivity"
             android:parentActivityName=".activity.MonumentInfoActivity" />
         <activity
-            android:name=".activity.WarningInfoActivity"
-            android:parentActivityName=".activity.WarningActivity" />
+            android:name=".activity.WarningInfoActivity"/>
+            <!--android:parentActivityName=".activity.WarningActivity" />-->
 
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>

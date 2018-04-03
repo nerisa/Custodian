@@ -10,10 +10,12 @@ import android.os.Parcelable;
 
 public class Warning implements Parcelable {
 
+    private long id;
     private String desc;
     private String image;
-    private Long date;
-    private boolean isVerified;
+    private long date;
+    private boolean verified;
+    private long userId;
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
         public Warning createFromParcel(Parcel in) {
@@ -27,7 +29,7 @@ public class Warning implements Parcelable {
 
     public Warning(){}
 
-    public Warning(String desc, String image, Long date){
+    public Warning(String desc, String image, long date){
         this.desc = desc;
         this.image = image;
         this.date = date;
@@ -53,16 +55,28 @@ public class Warning implements Parcelable {
         return date;
     }
 
-    public void setDate(Long date) {
+    public void setDate(long date) {
         this.date = date;
     }
 
     public void setVerify(boolean isVerified){
-        this.isVerified = isVerified;
+        this.verified = isVerified;
     }
 
     public boolean isVerified(){
-        return isVerified;
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 
     @Override
@@ -75,12 +89,26 @@ public class Warning implements Parcelable {
         parcel.writeString(desc);
         parcel.writeString(image);
         parcel.writeLong(date);
+        parcel.writeLong(userId);
+        parcel.writeByte((byte) (verified ? 1 : 0));
+        parcel.writeLong(id);
     }
 
     private Warning(Parcel in){
         this.desc = in.readString();
         this.image = in.readString();
         this.date = in.readLong();
+        this.userId = in.readLong();
+        this.verified = (in.readByte() != 0);
+        this.id = in.readLong();
     }
 
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 }

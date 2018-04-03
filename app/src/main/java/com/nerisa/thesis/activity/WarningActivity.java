@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Address;
@@ -25,7 +26,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -206,12 +206,11 @@ public class WarningActivity extends AppCompatActivity {
     }
 
     private void getWarnings(){
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-//                        monument.getId());
         String url = String
-                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-                        "1");
+                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_LIST_URL,
+                        monument.getId());
+
+        Log.d(TAG, "Getting warnings with url: " + url);
 
         JsonArrayRequest postRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>()
@@ -228,8 +227,12 @@ public class WarningActivity extends AppCompatActivity {
                             noWarningText.setVisibility(View.GONE);
                             for (int i = 0; i < response.length(); i++) {
                                 try {
+                                    System.out.println(response.get(i).toString());
                                     Warning warning = new Gson().fromJson(response.get(i).toString(), Warning.class);
-                                    warningList.add(warning);
+                                    if(warning.isVerified()) {
+                                        System.out.println("here");
+                                        warningList.add(warning);
+                                    }
                                 } catch (JSONException e) {
                                     Log.w(TAG, "Could not parse json repsonse");
                                 }
@@ -374,6 +377,8 @@ public class WarningActivity extends AppCompatActivity {
         warning = new Warning();
         warning.setDesc(warningDesc.getText().toString());
         warning.setDate(new Date().getTime());
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
+        warning.setUserId(pref.getLong(Constant.USER_ID_KEY, 0));
 
         uploadImageToFirebase();
             return;
@@ -408,7 +413,8 @@ public class WarningActivity extends AppCompatActivity {
 //                        monument.getId());
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-                        "1");
+                        monument.getId());
+        Log.d(TAG, "Posting a new warning with url: " + url);
         Gson gson = new GsonBuilder().create();
         String json = gson.toJson(warning);
         JSONObject jsonObj = null;
@@ -417,7 +423,7 @@ public class WarningActivity extends AppCompatActivity {
         } catch (JSONException e){
             Log.d(TAG,"exception");
         }
-
+        Log.d(TAG, "JSON body for request: " + jsonObj.toString());
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
                 new Response.Listener<JSONObject>()
                 {
@@ -427,6 +433,12 @@ public class WarningActivity extends AppCompatActivity {
                         Log.d(TAG, response.toString());
                         finish();
                         startActivity(getIntent());
+                        Warning warning = new Gson().fromJson(response.toString(), Warning.class);
+                        if(warning.isVerified()) {
+                            warningList.add(warning);
+                            mAdapter.notifyDataSetChanged();
+
+                        }
                         Toast.makeText(WarningActivity.this, "The warning has been added. The custodian will be notified to verify it.", Toast.LENGTH_LONG)
                                 .show();
                     }

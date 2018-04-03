@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,15 +10,37 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.nerisa.thesis.activity.NotificationActivity">
 
-    <TextView
-        android:id="@+id/txt_push_message"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
-        android:gravity="center_horizontal"
-        android:textColor="@color/colorPrimary"
-        android:textSize="26dp" />
+        android:orientation="vertical">
 
-</RelativeLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/unverified_warnings_title"
+            android:textColor="@color/colorTitle"
+            android:textSize="@dimen/header2" />
+
+        <TextView
+            android:id="@+id/no_warning_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/no_warnings_to_verify"
+            android:textColor="@color/colorSubtitle" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/warning_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical"
+            android:backgroundTint="@color/cardBackground"
+            android:padding="10dp"/>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -19,6 +19,7 @@
     <string name="action_posts">Were you here?</string>
     <string name="action_warnings">Do you see any warnings?</string>
     <string name="warnings_title">Warnings</string>
+    <string name="unverified_warnings_title">Unverified Warnings</string>
     <string name="warnings_none">No warnings have been posted for this monument.</string>
     <string name="warning_new">Post a new warning</string>
     <string name="warning_desc">What is the problem here?</string>
@@ -27,4 +28,5 @@
     <string name="posts_none">Noone has said anything about this monument yet.</string>
     <string name="action_verify">Verify</string>
     <string name="action_false">False alarm</string>
+    <string name="no_warnings_to_verify">You have to become a custodian to verify see the unverified warnings.</string>
 </resources>

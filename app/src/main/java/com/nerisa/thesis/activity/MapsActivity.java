@@ -51,10 +51,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 
 //TODO figure out what actually happens on resume, stop, pause
@@ -126,7 +123,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
+//        Intent notification = new Intent(MapsActivity.this, NotificationActivity.class);
+//        startActivity(notification);
+
     }
+
 
     @Override
     protected void onStart() {
@@ -453,7 +454,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         } else if (marker.getType() == MarkerTag.MarkerType.MONUMENT) {
-            Long monumentId = (Long) marker.getMonumentId();
+            Long monumentId = marker.getMonumentId();
             String url = String
                     .format(Constant.SERVER_URL + Constant.MONUMENT_URL + "/%1$s",
                             monumentId.toString());
@@ -502,11 +503,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void getNearbyMonuments(LatLng userPos){
         //TODO put actual coordinates
         String url = String
-                .format(Constant.SERVER_URL + Constant.MONUMENTS_URL +"?lat=%1$s&lon=%2$s",
+                .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s",
                         userPos.latitude,
                         userPos.longitude);
 //        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENTS_URL +"?lat=%1$s&lon=%2$s",
+//                .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s",
 //                        "48.624061",
 //                        "2.444167");
         Log.i(TAG, "Getting nearby monuments using url " + url);

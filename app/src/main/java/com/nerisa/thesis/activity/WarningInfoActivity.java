@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,12 +63,22 @@ public class WarningInfoActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (null != intent){
-            monument = intent.getParcelableExtra(Constant.MONUMENT);
+            if(intent.getExtras().containsKey(Constant.UNVERIFIED_WARNING)){
+                getMonument();
+            } else {
+                monument = intent.getParcelableExtra(Constant.MONUMENT);
+            }
             warning = intent.getParcelableExtra(Constant.WARNING);
+            System.out.println(warning.isVerified());
         }
 
         TextView date = (TextView) findViewById(R.id.date);
         ImageView imageView = (ImageView) findViewById(R.id.image);
+        LinearLayout buttonWrapper = (LinearLayout) findViewById(R.id.action_button_wrapper);
+        if(warning.isVerified()){
+
+            buttonWrapper.setVisibility(View.GONE);
+        }
         TextView desc = (TextView) findViewById(R.id.desc);
         date.setText(new Date(warning.getDate()).toString());
         desc.setText(warning.getDesc());
@@ -77,6 +89,8 @@ public class WarningInfoActivity extends AppCompatActivity {
                 .using(new FirebaseImageLoader())
                 .load(storageReference)
                 .into(imageView);
+
+
     }
 
     @Override
@@ -126,18 +140,17 @@ public class WarningInfoActivity extends AppCompatActivity {
 
     private void changeWarningStatus(boolean status){
         warning.setVerify(status);
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-//                        monument.getId());
         String url = String
-                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-                        "1");
+                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL + "/%2$s",
+                        monument.getId(), warning.getId());
+        Log.d(TAG, "Changing the warning status using url: " + url);
+
         Gson gson = new GsonBuilder().create();
         String json = gson.toJson(warning);
         JSONObject jsonObj = null;
         try {
             jsonObj = new JSONObject(json);
-            Log.d(TAG+"chekkkkkk", jsonObj.toString());
+            Log.d(TAG, "warning change request: " + jsonObj.toString());
         } catch (JSONException e){
             Log.d(TAG,"exception");
         }
@@ -148,7 +161,7 @@ public class WarningInfoActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         // response
-                        Log.d(TAG, response.toString());
+                        Log.d(TAG, "Response:" + response.toString());
                         Intent intent = new Intent(WarningInfoActivity.this, MonumentInfoActivity.class);
                         intent.putExtra(Constant.MONUMENT, monument);
                         startActivity(intent);
@@ -165,5 +178,34 @@ public class WarningInfoActivity extends AppCompatActivity {
         });
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
 
+    }
+
+    private void getMonument(){
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+        Long monumentId = sharedPreferences.getLong(Constant.MONUMENT_ID_KEY,0);
+        String url = String
+                .format(Constant.SERVER_URL + Constant.MONUMENT_URL + "/%1$s",
+                        monumentId.toString());
+//            String url = String
+//                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
+//                            "3");
+        Log.d(TAG, "Getting monument details with url: " + url);
+
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d(TAG, "Got response for monument: " + response.toString());
+                        monument = Monument.mapResponse(response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // error
+                Log.e("Error.Response", error.toString());
+            }
+        });
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
     }
 }

@@ -487,7 +487,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                         Log.d(TAG, response.toString());
                         try {
                             JSONObject tempResponse = (JSONObject) response.get("main");
-                            Double temperature = (Double) tempResponse.getDouble("temp");
+                            Double temperature = tempResponse.getDouble("temp");
                             monument.setTemperature(temperature);
                             temperatureView.setText("Current Surrounding Temperature: "+ Math.round(monument.getTemperature()) + " \u00b0C");
                             Log.d(TAG,monument.getTemperature().toString());
@@ -628,6 +628,7 @@ public class AddMonumentActivity extends AppCompatActivity {
     private void handleCreateMonumentResponse(JSONObject response){
         Monument monument = Monument.mapResponse(response);
 
+        Log.d(TAG, "Saving monument data for user_id, monument_id:" + monument.getUserId()+ "," +monument.getId());
         SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.TRUE);

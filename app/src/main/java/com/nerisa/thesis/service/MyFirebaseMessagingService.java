@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.nerisa.thesis.activity.MainActivity;
 import com.nerisa.thesis.activity.NotificationActivity;
 import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.R;
@@ -43,8 +44,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage == null)
             return;
 
+
         // Check if message contains a notification payload.
-        if (remoteMessage.getNotification() != null) {
+        else if (remoteMessage.getNotification() != null) {
             Log.e(TAG, "Notification Body: " + remoteMessage.getNotification().getBody());
             handleNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
         }
@@ -56,10 +58,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             try {
                 JSONObject json = new JSONObject(remoteMessage.getData().toString());
                 handleDataMessage(json, remoteMessage.getNotification());
+//                handleDataMessage(json);
             } catch (Exception e) {
                 Log.e(TAG, "Exception: " + e.getMessage());
             }
         }
+
+
     }
 
     private void handleNotification(String title, final String message) {
@@ -83,17 +88,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private void handleDataMessage(JSONObject json, RemoteMessage.Notification notification) {
-        Log.e(TAG, "push json: " + json.toString());
-        Log.e(TAG, notification.getBody());
-        Log.e(TAG, notification.getTitle());
-        Log.e(TAG, ">>>>>>>>>>>>>>>>>>>>");
+//    private void handleDataMessage(JSONObject json) {
+        Log.d(TAG, "push json: " + json.toString());
+
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>");
 
         try {
-//            JSONObject data = json.getJSONObject("data");
-
-            String title = json.getString("type");
-
-
             if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
                 Intent pushNotification = new Intent(Constant.PUSH_NOTIFICATION);
@@ -102,10 +102,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), NotificationActivity.class);
+                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
                 resultIntent.putExtra(Constant.DATA, json.getString("monument"));
 
-                showNotificationMessage(getApplicationContext(), notification.getTitle(), notification.getBody(),json.getLong("timeStamp"), resultIntent);
+                showNotificationMessage(getApplicationContext(), notification.getTitle(),notification.getBody(),json.getLong("timeStamp"), resultIntent);
             }
         } catch (JSONException e) {
             Log.e(TAG, "Json Exception: " + e.getMessage());

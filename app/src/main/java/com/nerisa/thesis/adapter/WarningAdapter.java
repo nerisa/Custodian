@@ -56,7 +56,6 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.MyViewHo
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            Log.d("??????", "called");
             Warning warning = warningList.get(position);
             holder.desc.setText(warning.getDesc());
             holder.date.setText(new Date(warning.getDate()).toString());

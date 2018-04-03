@@ -1,5 +1,6 @@
 package com.nerisa.thesis.activity;
 
+import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
@@ -74,10 +75,23 @@ public class MainActivity extends AppCompatActivity implements
         super.onStart();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         FirebaseUser currentUser = mAuth.getCurrentUser();
+
         if(account != null && currentUser != null){
-            showMap();
+            if (getIntent().getExtras() != null && getIntent().getExtras().getString("type") != null) {
+                Log.d(TAG, "Got a notification for " + getIntent().getExtras().getString("type"));
+                if(getIntent().getExtras().getString("type").equals("warning")) {
+                    Long monumentId = Long.valueOf(getIntent().getExtras().getString("monument"));
+                    Intent notification = new Intent(MainActivity.this, NotificationActivity.class);
+                    notification.putExtra(Constant.MONUMENT, monumentId);
+                    startActivity(notification);
+                }
+
+            } else {
+                showMap();
+            }
         }
     }
+
 
     @Override
     public void onClick(View v) {

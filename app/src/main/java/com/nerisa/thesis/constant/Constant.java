@@ -7,10 +7,11 @@ package com.nerisa.thesis.constant;
 public class Constant {
     public static final String MONUMENT = "monument";
     public static final String WARNING = "warning";
-    public static final String SERVER_URL = "http://157.159.43.45:8080";
+    public static final String SERVER_URL = "http://192.168.0.103:8080";
     public static final String MONUMENT_URL = "/monument";
-    public static final String MONUMENTS_URL = "/monuments";
+    public static final String MONUMENT_LIST_URL = "/monuments";
     public static final String WARNING_URL = "/warning";
+    public static final String WARNING_LIST_URL = "/warnings";
     public static final String POST_URL = "/post";
     public static final String USER_URL = "/user";
     public static final String WIKI_API_URL = "https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=5000&gscoord=%1$s|%2$s&gsprop=type&format=json";
@@ -32,5 +33,6 @@ public class Constant {
     public static final String MONUMENT_ID_KEY = "monument_id";
 
     public static final String MONUMENT_INFO_PRESENT = "from wiki info";
+    public final static String UNVERIFIED_WARNING = "unverified";
 
 }
