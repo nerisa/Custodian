@@ -75,6 +75,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static Boolean isNearbyRetrieved = Boolean.FALSE;
     private static Boolean isWikiRetrieved = Boolean.FALSE;
+    private static Boolean isUserCustodian;
 
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -89,9 +90,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest mLocationRequest;
 
     // Location updates intervals in sec
-    private static int UPDATE_INTERVAL = 10000; // 10 sec
-    private static int FATEST_INTERVAL = 5000; // 5 sec
-    private static int DISPLACEMENT = 250; // 10 meters
+    private static int UPDATE_INTERVAL = 10*60*1000; // 10 min
+    private static int FATEST_INTERVAL = 5*60*1000; // 5 min
+    private static int DISPLACEMENT = 250; // 250 meters
 
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -125,6 +126,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 //        Intent notification = new Intent(MapsActivity.this, NotificationActivity.class);
 //        startActivity(notification);
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+        isUserCustodian = sharedPreferences.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
 
     }
 
@@ -224,21 +227,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
-//        mMap.clear();
-        System.out.println("location changed called");
-        System.out.println("location changed ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]called");
-
+        mMap.clear();
         mLastLocation = location;
         LatLng currentPos = new LatLng(mLastLocation.getLatitude(),
                 mLastLocation.getLongitude());
-        mMap.addMarker(new MarkerOptions()
-                .position(currentPos)
-                .title("Add your monument here")
-                .draggable(true));
+        if(!isUserCustodian) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(currentPos)
+                    .title("Add your monument here")
+                    .draggable(true));
+        }
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPos, DEFAULT_ZOOM));
         getNearbyMonuments(currentPos);
         getWikiMonuments(currentPos);
-//        displayNearbyMonuments();
+        displayNearbyMonuments();
     }
 
     /**
@@ -267,9 +269,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 currentPos = new LatLng(mLastLocation.getLatitude(),
                         mLastLocation.getLongitude());
-                SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
-                Boolean isCustodian = pref.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
-                if(!isCustodian) {
+                if(!isUserCustodian) {
                     mMap.addMarker(new MarkerOptions()
                             .position(currentPos)
                             .title("Add your monument here")
@@ -321,7 +321,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
-        updateLocationUI();
+//        updateLocationUI();
     }
 
     /**
@@ -371,7 +371,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng userPos = getDeviceLocation();
         getNearbyMonuments(userPos);
         getWikiMonuments(userPos);
-//        displayNearbyMonuments();
         createLocationRequest();
 
         mMap.setOnMarkerClickListener(this);
@@ -458,9 +457,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String url = String
                     .format(Constant.SERVER_URL + Constant.MONUMENT_URL + "/%1$s",
                             monumentId.toString());
-//            String url = String
-//                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
-//                            "3");
+//
             Log.d(TAG, "Getting monument details with url: " + url);
 
             JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
@@ -568,14 +565,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     Log.d(TAG, "a monument found in wiki");
                                     Monument monument = Monument.mapWikiResponse(result);
                                     wikiMonuments.add(monument);
-//                                    LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
-//                                    Marker monumentMarker = mMap.addMarker(new MarkerOptions()
-//                                            .position(monumentPos)
-//                                            .title(monument.getName())
-//                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.icons_wikipedia))
-//                                            .draggable(false));
-//                                    monumentMarker.setTag(monument.getReference());
-
                                 }
                             }
 
@@ -583,7 +572,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             Log.e(TAG, "Wiki response parse error: " + e.getStackTrace());
                         }
                         isWikiRetrieved = Boolean.TRUE;
-                        System.out.println("DOne wiki");
                         displayNearbyMonuments();
 
                     }

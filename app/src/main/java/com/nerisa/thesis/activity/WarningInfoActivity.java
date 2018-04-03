@@ -186,9 +186,6 @@ public class WarningInfoActivity extends AppCompatActivity {
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL + "/%1$s",
                         monumentId.toString());
-//            String url = String
-//                    .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s",
-//                            "3");
         Log.d(TAG, "Getting monument details with url: " + url);
 
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,

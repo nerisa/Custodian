@@ -204,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void storeUserData(JSONObject response) {
+
         User user = new Gson().fromJson(response.toString(), User.class);
         Log.d(TAG, "Storing user's data in the app: " + user.getEmail());
         SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
@@ -212,6 +213,9 @@ public class MainActivity extends AppCompatActivity implements
         editor.putLong(Constant.USER_ID_KEY, user.getId());
         editor.putBoolean(Constant.USER_CUSTODIAN_KEY, user.isCustodian());
         editor.putString(Constant.USER_EMAIL_KEY, user.getEmail());
+        if(user.isCustodian()){
+            editor.putLong(Constant.MONUMENT_ID_KEY, user.getMonumentId());
+        }
         editor.commit();
 
     }
