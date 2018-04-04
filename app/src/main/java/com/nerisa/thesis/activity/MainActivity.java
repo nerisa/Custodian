@@ -1,16 +1,13 @@
 package com.nerisa.thesis.activity;
 
-import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -35,8 +32,8 @@ import com.google.gson.GsonBuilder;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.R;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.model.User;
+import com.nerisa.thesis.util.Utility;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements
     AlphaAnimation inAnimation;
     AlphaAnimation outAnimation;
 
-    FrameLayout progressBarHolder;
+    View progressBarHolder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements
 //        findViewById(R.id.skip_button).setOnClickListener(this);
 
         mAuth = FirebaseAuth.getInstance();
-        progressBarHolder = (FrameLayout) findViewById(R.id.progressBarHolder);
+        progressBarHolder = findViewById(R.id.progress_overlay);
 
     }
 
@@ -114,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "Starting the sign in process");
 
 
-        showProgress();
+        Utility.animateView(progressBarHolder, View.VISIBLE, 0.4f, 200);
 
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -152,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
 
-           hideProgress();
+            Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
 
             Toast toast = Toast.makeText(this, "Login Failed", Toast.LENGTH_SHORT);
             toast.show();
@@ -177,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
 
-                            hideProgress();
+                            Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
                             Toast toast = Toast.makeText(MainActivity.this, "Login Failed", Toast.LENGTH_SHORT);
                             toast.show();
                         }
@@ -209,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements
 
                         Log.d(TAG, "User registered with the server: " + response.toString());
                         storeUserData(response);
-                        hideProgress();
+                        Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
                         showMap();
 
                     }
@@ -221,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements
                 Log.d(TAG, "Error sending user data to server:" + error.getStackTrace());
                 FirebaseAuth.getInstance().signOut();
                 mGoogleSignInClient.signOut();
-                hideProgress();
+                Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
 
             }
         });
