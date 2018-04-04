@@ -58,7 +58,7 @@ import java.util.List;
 
 public class PostsActivity extends AppCompatActivity {
 
-    private static final String TAG = MonumentInfoActivity.class.getSimpleName();
+    private static final String TAG = PostsActivity.class.getSimpleName();
     private static GoogleSignInClient mGoogleSignInClient;
     private static Monument monument;
     private static List<Address> addresses;
@@ -66,8 +66,6 @@ public class PostsActivity extends AppCompatActivity {
     private List<Post> postList = new ArrayList<>();
     private RecyclerView recyclerView;
     PostAdapter mAdapter;
-
-    private static Post post;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,21 +105,20 @@ public class PostsActivity extends AppCompatActivity {
 
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);
-        TextView monumentCreator = (TextView) findViewById(R.id.creator);
+//        TextView monumentCreator = (TextView) findViewById(R.id.creator);
         ImageView monumentImage = (ImageView) findViewById(R.id.image);
 
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
         monumentName.setText(monument.getName());
-        monumentCreator.setText(monument.getCreator());
+//        monumentCreator.setText(monument.getCreator());
         Glide.with(this /* context */)
                 .using(new FirebaseImageLoader())
                 .load(storageReference)
                 .into(monumentImage);
 
         recyclerView = (RecyclerView) findViewById(R.id.post_recycler_view);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         mAdapter = new PostAdapter(postList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
@@ -167,12 +164,10 @@ public class PostsActivity extends AppCompatActivity {
     }
 
     private void getPosts(){
-        //        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.POST_URL,
-//                        monument.getId());
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.POST_URL,
-                        "1");
+                monument.getId());
+        Log.d(TAG, "Getting posts from url" + url);
 
         JsonArrayRequest postRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>()
@@ -181,10 +176,7 @@ public class PostsActivity extends AppCompatActivity {
                     public void onResponse(JSONArray response) {
                         // response
                         Log.d(TAG, response.toString());
-                        if(response.length() == 0){
-                            RelativeLayout layout = (RelativeLayout) findViewById(R.id.posts_container);
-                            layout.setVisibility(View.GONE);
-                        } else {
+                        if(response.length() != 0){
                             TextView noWarningText = (TextView) findViewById(R.id.no_post_content);
                             noWarningText.setVisibility(View.GONE);
                             for (int i = 0; i < response.length(); i++) {
@@ -210,15 +202,12 @@ public class PostsActivity extends AppCompatActivity {
     }
 
     public void addPost(View v){
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.POST_URL,
-//                        monument.getId());
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.POST_URL,
-                        "1");
+                        monument.getId());
 
         EditText postDesc = (EditText) findViewById(R.id.new_post_desc);
-        post = new Post();
+        Post post = new Post();
         post.setDesc(postDesc.getText().toString());
         post.setDate(new Date().getTime());
         Gson gson = new GsonBuilder().create();
@@ -226,9 +215,9 @@ public class PostsActivity extends AppCompatActivity {
         JSONObject jsonObj = null;
         try {
             jsonObj = new JSONObject(json);
-            Log.d("ppppppp", jsonObj.toString());
+            Log.d(TAG, "Post request: " + jsonObj.toString());
         } catch (JSONException e){
-            Log.d(TAG,"exception");
+            Log.d(TAG,"Error: " + e.getStackTrace());
         }
 
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
@@ -237,7 +226,7 @@ public class PostsActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         // response
-                        Log.d(TAG, response.toString());
+                        Log.d(TAG, "Response: " + response.toString());
                         Post post = new Gson().fromJson(response.toString(), Post.class);
                         postList.add(post);
                         mAdapter.notifyDataSetChanged();

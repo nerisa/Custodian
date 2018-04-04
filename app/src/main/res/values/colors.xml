@@ -7,4 +7,5 @@
     <color name="colorSubtitle">#6c6c6c</color>
     <color name="cardBackground">#c2c2c2</color>
     <color name="colorIcon">#00A1F0</color>
+    <color name="layoutBackground">#ECECEC</color>
 </resources>

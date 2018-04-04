@@ -8,21 +8,35 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.nerisa.thesis.activity.NotificationActivity">
+    tools:context="com.nerisa.thesis.activity.NotificationActivity"
+    android:background="@color/layoutBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="#FFF">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/customborder_shadow">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
             android:text="@string/unverified_warnings_title"
             android:textColor="@color/colorTitle"
             android:textSize="@dimen/header2" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/layoutBackground" />
 
         <TextView
             android:id="@+id/no_warning_content"
@@ -41,6 +55,7 @@
             android:backgroundTint="@color/cardBackground"
             android:padding="10dp"/>
 
+    </LinearLayout>
     </LinearLayout>
 
 </ScrollView>

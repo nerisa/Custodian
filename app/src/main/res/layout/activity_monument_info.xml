@@ -1,123 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.nerisa.thesis.activity.MonumentInfoActivity">
-
-    <RelativeLayout
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context="com.nerisa.thesis.activity.MonumentInfoActivity">
 
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="fitCenter" />
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:scaleType="centerCrop" />
 
-    <!--<ImageView-->
-        <!--android:id="@+id/image"-->
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/image"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorTitle"
+            android:textSize="@dimen/header" />
+
+
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/name"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="5dp"
+            android:drawableLeft="@drawable/ic_location"
+            android:gravity="center|left"
+            android:textColor="@color/colorSubtitle"
+            android:textSize="@dimen/subtitle"
+            android:textStyle="italic" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/darker_gray" />
+
+
+        <!--<TextView-->
+        <!--android:id="@+id/desc_title"-->
         <!--android:layout_width="wrap_content"-->
         <!--android:layout_height="wrap_content"-->
         <!--android:layout_marginTop="16dp"-->
         <!--android:layout_marginLeft="16dp"-->
-        <!--android:layout_marginRight="10dp" />-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:text="@string/desc_title"-->
+        <!--android:textSize="@dimen/header2"-->
+        <!--android:textColor="@color/colorTitle"/>-->
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/image"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="5dp"
-        android:text="Hello"
-        android:textColor="@color/colorTitle"
-        android:textSize="@dimen/header" />
-
-
-    <TextView
-        android:id="@+id/address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/name"
-        android:drawableLeft="@drawable/ic_location"
-        android:layout_marginLeft="10dp"
-        android:gravity="center"
-        android:textColor="@color/colorSubtitle"
-        android:textSize="@dimen/subtitle"
-        />
-
-    <TextView
-        android:id="@+id/creator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/address"
-        android:text="TextView"
-        android:layout_marginLeft="16dp"
-        android:textColor="@color/colorSubtitle"
-        android:textSize="@dimen/subtitle"/>
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/desc_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="10dp"
-        android:text="@string/desc_title"
-        android:textSize="@dimen/header2"
-        android:textColor="@color/colorTitle"/>
-
-    <TextView
-        android:id="@+id/desc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="10dp"
-        android:textSize="@dimen/content"
-        android:textColor="@color/colorTitle"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:layout_weight="1"
-        android:gravity="center|bottom"
-        android:layout_marginTop="10dp">
-
-        <Button
+        <TextView
+            android:id="@+id/desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/action_posts"
-            android:theme="@style/PrimaryFlatButton"
-            android:onClick="showPosts"
-            android:layout_weight="1"
-            android:layout_gravity="bottom|center"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
             android:textColor="@color/colorTitle"
-            android:background="@color/cardBackground"
-            android:layout_margin="5dp"/>
+            android:textSize="@dimen/content" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_warnings"
-            android:theme="@style/PrimaryFlatButton"
-            android:onClick="showWarnings"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
             android:layout_weight="1"
-            android:layout_gravity="bottom|center"
-            android:textColor="@color/colorTitle"
-            android:background="@color/cardBackground"
-            android:layout_margin="5dp"/>
+            android:gravity="center|bottom"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
+                android:layout_marginRight="5dp"
+                android:layout_weight="0.5"
+                android:background="@color/cardBackground"
+                android:onClick="showPosts"
+                android:padding="5dp"
+                android:text="@string/posts_title"
+                android:textColor="@color/colorTitle"
+                android:theme="@style/PrimaryFlatButton" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="0.5"
+                android:background="@color/cardBackground"
+                android:onClick="showWarnings"
+                android:padding="5dp"
+                android:text="@string/warnings_title"
+                android:textColor="@color/colorTitle"
+                android:theme="@style/PrimaryFlatButton" />
+
+        </LinearLayout>
 
     </LinearLayout>
-
-</LinearLayout>
 </ScrollView>

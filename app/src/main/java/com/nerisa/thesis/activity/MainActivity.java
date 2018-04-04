@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -50,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements
 
     private FirebaseAuth mAuth;
 
+    AlphaAnimation inAnimation;
+    AlphaAnimation outAnimation;
+
+    FrameLayout progressBarHolder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements
 //        findViewById(R.id.skip_button).setOnClickListener(this);
 
         mAuth = FirebaseAuth.getInstance();
+        progressBarHolder = (FrameLayout) findViewById(R.id.progressBarHolder);
 
     }
 
@@ -104,6 +112,10 @@ public class MainActivity extends AppCompatActivity implements
 
     public void startSignIn(){
         Log.d(TAG, "Starting the sign in process");
+
+
+        showProgress();
+
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -123,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements
             // a listener.
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
+
         }
     }
 
@@ -138,6 +151,9 @@ public class MainActivity extends AppCompatActivity implements
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
+
+           hideProgress();
+
             Toast toast = Toast.makeText(this, "Login Failed", Toast.LENGTH_SHORT);
             toast.show();
         }
@@ -156,10 +172,12 @@ public class MainActivity extends AppCompatActivity implements
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             sendNewUserDataToServer(user);
-                            showMap();
+
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
+
+                            hideProgress();
                             Toast toast = Toast.makeText(MainActivity.this, "Login Failed", Toast.LENGTH_SHORT);
                             toast.show();
                         }
@@ -181,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         String url = Constant.SERVER_URL + Constant.USER_URL;
+        System.out.println(jsonObj);
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
                 new Response.Listener<JSONObject>()
                 {
@@ -190,6 +209,8 @@ public class MainActivity extends AppCompatActivity implements
 
                         Log.d(TAG, "User registered with the server: " + response.toString());
                         storeUserData(response);
+                        hideProgress();
+                        showMap();
 
                     }
                 }, new Response.ErrorListener()
@@ -197,7 +218,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onErrorResponse(VolleyError error) {
                 // error
-                Log.d(TAG, error.toString());
+                Log.d(TAG, "Error sending user data to server:" + error.getStackTrace());
+                FirebaseAuth.getInstance().signOut();
+                mGoogleSignInClient.signOut();
+                hideProgress();
+
             }
         });
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
@@ -218,6 +243,20 @@ public class MainActivity extends AppCompatActivity implements
         }
         editor.commit();
 
+    }
+
+    private void showProgress(){
+        inAnimation = new AlphaAnimation(0f, 1f);
+        inAnimation.setDuration(200);
+        progressBarHolder.setAnimation(inAnimation);
+        progressBarHolder.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgress(){
+        outAnimation = new AlphaAnimation(1f, 0f);
+        outAnimation.setDuration(200);
+        progressBarHolder.setAnimation(outAnimation);
+        progressBarHolder.setVisibility(View.GONE);
     }
 
 

@@ -35,7 +35,7 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.MyViewHo
             public MyViewHolder(View view) {
                 super(view);
                 desc = (TextView) view.findViewById(R.id.desc);
-                date = (TextView) view.findViewById(R.id.date);
+//                date = (TextView) view.findViewById(R.id.date);
                 warningImage = (ImageView) view.findViewById(R.id.warning_image);
             }
         }
@@ -58,7 +58,7 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.MyViewHo
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Warning warning = warningList.get(position);
             holder.desc.setText(warning.getDesc());
-            holder.date.setText(new Date(warning.getDate()).toString());
+//            holder.date.setText(new Date(warning.getDate()).toString());
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReferenceFromUrl(warning.getImage());
             glide.using(new FirebaseImageLoader())

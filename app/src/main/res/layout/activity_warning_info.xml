@@ -14,24 +14,34 @@
         android:id="@+id/image_container"
         android:layout_weight="0">
 
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="fitCenter" />
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:scaleType="centerCrop" />
 
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/image"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="5dp"
-        android:text="Hello"
-        android:textColor="@color/colorSubtitle"
-        android:textSize="@dimen/subtitle" />
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:drawableLeft="@drawable/ic_time"
+            android:paddingTop="5dp"
+            android:gravity="center"
+            android:textColor="@color/colorSubtitle"
+            android:layout_below="@+id/image"
+            />
 
     </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@color/layoutBackground" />
 
     <TextView
         android:id="@+id/desc"

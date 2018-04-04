@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:fillViewport="true"
+    tools:context="com.nerisa.thesis.activity.WikiInfoActivity">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/info_wrapper"
@@ -11,89 +12,85 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="com.nerisa.thesis.activity.WikiInfoActivity"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:layout_marginTop="5dp">
+        >
 
-        <RelativeLayout
+        <ImageView
+            android:id="@+id/image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="300dp"
+            android:scaleType="centerCrop" />
 
-            <ImageView
-                android:id="@+id/image"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:scaleType="fitCenter" />
-
-            <!--<ImageView-->
-            <!--android:id="@+id/image"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_marginTop="16dp"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:layout_marginRight="10dp" />-->
-
-            <TextView
-                android:id="@+id/name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/image"
-                android:layout_marginTop="5dp"
-                android:text="Hello"
-                android:textColor="@color/colorTitle"
-                android:textSize="@dimen/header" />
-
-
-            <TextView
-                android:id="@+id/address"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/name"
-                android:drawableLeft="@drawable/ic_location"
-                android:gravity="center"
-                android:textColor="@color/colorSubtitle"
-                android:textSize="@dimen/subtitle"
-                />
-
-            <TextView
-                android:id="@+id/creator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/address"
-                android:layout_marginLeft="16dp"
-                android:filterTouchesWhenObscured="true"
-                android:text="TextView"
-                android:textColor="@color/colorSubtitle"
-                android:textSize="@dimen/subtitle" />
-        </RelativeLayout>
 
         <TextView
-            android:id="@+id/desc_title"
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/image"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorTitle"
+            android:textSize="@dimen/header" />
+
+
+        <TextView
+            android:id="@+id/address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/desc_title"
-            android:textSize="@dimen/header2"
-            android:textColor="@color/colorTitle"/>
+            android:layout_below="@id/name"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="5dp"
+            android:drawableLeft="@drawable/ic_location"
+            android:gravity="center|left"
+            android:textColor="@color/colorSubtitle"
+            android:textSize="@dimen/subtitle"
+            android:textStyle="italic" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/darker_gray" />
+
+
+        <!--<TextView-->
+        <!--android:id="@+id/desc_title"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="16dp"-->
+        <!--android:layout_marginLeft="16dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:text="@string/desc_title"-->
+        <!--android:textSize="@dimen/header2"-->
+        <!--android:textColor="@color/colorTitle"/>-->
 
         <TextView
             android:id="@+id/desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/colorTitle"
             android:textSize="@dimen/content"
-            android:textColor="@color/colorTitle"/>
+            android:layout_marginBottom="16dp"/>
 
 
         <LinearLayout
             android:id="@+id/button_wrapper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
             android:layout_weight="1"
             android:gravity="center|bottom"
-            android:layout_marginTop="10dp">
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/custodian_prompt"

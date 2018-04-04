@@ -129,7 +129,7 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         if (intent.hasExtra(Constant.MONUMENT_INFO_PRESENT)){
             EditText monumentName = (EditText) findViewById(R.id.monument_name);
-            EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
+//            EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
             EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
             monumentName.setText(monument.getName());
             monumentDesc.setText(monument.getDesc());
@@ -513,11 +513,11 @@ public class AddMonumentActivity extends AppCompatActivity {
         Log.d(TAG, "button clicked");
 
         EditText monumentName = (EditText) findViewById(R.id.monument_name);
-        EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
+//        EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
         EditText monumentDesc  = (EditText) findViewById(R.id.monument_desc);
 
         monument.setName(monumentName.getText().toString());
-        monument.setCreator(monumentCreator.getText().toString());
+//        monument.setCreator(monumentCreator.getText().toString());
         monument.setDesc(monumentDesc.getText().toString());
         isAudioUploadDone = Boolean.FALSE;
         isImageUploadDone = Boolean.FALSE;

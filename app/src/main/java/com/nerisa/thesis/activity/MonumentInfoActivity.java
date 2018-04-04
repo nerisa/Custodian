@@ -76,13 +76,13 @@ public class MonumentInfoActivity extends AppCompatActivity {
 
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);
-        TextView monumentCreator = (TextView) findViewById(R.id.creator);
+//        TextView monumentCreator = (TextView) findViewById(R.id.creator);
         TextView monumentDesc = (TextView) findViewById(R.id.desc);
         ImageView monumentImage = (ImageView) findViewById(R.id.image);
 
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
         monumentName.setText(monument.getName());
-        monumentCreator.setText(monument.getCreator());
+//        monumentCreator.setText(monument.getCreator());
         monumentDesc.setText(monument.getDesc());
         Glide.with(this /* context */)
                 .using(new FirebaseImageLoader())

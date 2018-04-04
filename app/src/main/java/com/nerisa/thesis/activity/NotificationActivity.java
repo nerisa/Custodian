@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.nerisa.thesis.AppController;
 import com.nerisa.thesis.R;
 import com.nerisa.thesis.adapter.RecyclerTouchListener;
+import com.nerisa.thesis.adapter.VerticalWarningAdapter;
 import com.nerisa.thesis.adapter.WarningAdapter;
 import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.model.Warning;
@@ -45,7 +46,7 @@ public class NotificationActivity extends AppCompatActivity {
 
     private List<Warning> warningList = new ArrayList<>();
     private RecyclerView recyclerView;
-    WarningAdapter mAdapter;
+    VerticalWarningAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +55,7 @@ public class NotificationActivity extends AppCompatActivity {
 
         recyclerView = (RecyclerView) findViewById(R.id.warning_recycler_view);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        mAdapter = new WarningAdapter(Glide.with(this), warningList);
+        mAdapter = new VerticalWarningAdapter(Glide.with(this), warningList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -92,10 +93,6 @@ public class NotificationActivity extends AppCompatActivity {
     }
 
     private void getWarnings(){
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.WARNING_URL,
-//                        monument.getId());
-        //todo get user's monument id
         SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
         Boolean isCustodian = sharedPreferences.getBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.FALSE);
         Log.d(TAG,String.valueOf(sharedPreferences.getLong(Constant.MONUMENT_ID_KEY, 0)));
@@ -114,25 +111,25 @@ public class NotificationActivity extends AppCompatActivity {
                         public void onResponse(JSONArray response) {
                             // response
                             Log.d(TAG, response.toString());
-                            if (response.length() == 0) {
-                                TextView noWarningText = (TextView) findViewById(R.id.no_warning_content);
-                                noWarningText.setText("No warnings have been posted yet.");
-                            } else {
-                                TextView noWarningText = (TextView) findViewById(R.id.no_warning_content);
-                                noWarningText.setVisibility(View.GONE);
-                                for (int i = 0; i < response.length(); i++) {
-                                    try {
-                                        System.out.println(response.get(i).toString());
-                                        Warning warning = new Gson().fromJson(response.get(i).toString(), Warning.class);
-                                        if (!warning.isVerified()) {
-                                            System.out.println("here");
-                                            warningList.add(warning);
-                                        }
-                                    } catch (JSONException e) {
-                                        Log.w(TAG, "Could not parse json repsonse");
+
+                            for (int i = 0; i < response.length(); i++) {
+                                try {
+                                    System.out.println(response.get(i).toString());
+                                    Warning warning = new Gson().fromJson(response.get(i).toString(), Warning.class);
+                                    if (!warning.isVerified()) {
+                                        System.out.println("here");
+                                        warningList.add(warning);
                                     }
+                                } catch (JSONException e) {
+                                    Log.w(TAG, "Could not parse json repsonse");
                                 }
+                            }
+                            TextView noWarningText = (TextView) findViewById(R.id.no_warning_content);
+                            if(!warningList.isEmpty()) {
+                                noWarningText.setVisibility(View.GONE);
                                 mAdapter.notifyDataSetChanged();
+                            } else {
+                                noWarningText.setText("No warnings have been posted yet.");
                             }
                         }
                     }, new Response.ErrorListener() {

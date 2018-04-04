@@ -1,7 +1,6 @@
 package com.nerisa.thesis.adapter;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.nerisa.thesis.R;
-import com.nerisa.thesis.model.Post;
 import com.nerisa.thesis.model.Warning;
 
 import java.text.SimpleDateFormat;
@@ -24,43 +22,52 @@ import java.util.List;
  * Created by nerisa on 3/13/18.
  */
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> {
+public class VerticalWarningAdapter extends RecyclerView.Adapter<VerticalWarningAdapter.MyViewHolder> {
 
-        private List<Post> postList;
+        private List<Warning> warningList;
+        private RequestManager glide;
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
 
             public TextView desc, date;
+            public ImageView warningImage;
 
             public MyViewHolder(View view) {
                 super(view);
                 desc = (TextView) view.findViewById(R.id.desc);
                 date = (TextView) view.findViewById(R.id.date);
+                warningImage = (ImageView) view.findViewById(R.id.warning_image);
             }
         }
 
 
-        public PostAdapter(List<Post> postList) {
-            this.postList = postList;
+        public VerticalWarningAdapter(RequestManager glide, List<Warning> warningList) {
+            this.glide = glide;
+            this.warningList = warningList;
         }
 
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.post_list, parent, false);
+                    .inflate(R.layout.warning_list_vertical, parent, false);
 
             return new MyViewHolder(itemView);
         }
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            Post post = postList.get(position);
-            holder.desc.setText(post.getDesc());
-            holder.date.setText(new SimpleDateFormat("yyyy/MM/dd HH:mm").format(new Date(post.getDate())));
+            Warning warning = warningList.get(position);
+            holder.desc.setText(warning.getDesc());
+            holder.date.setText(new SimpleDateFormat("yyyy/MM/dd HH:mm").format(new Date(warning.getDate())));
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            StorageReference storageReference = storage.getReferenceFromUrl(warning.getImage());
+            glide.using(new FirebaseImageLoader())
+                    .load(storageReference)
+                    .into(holder.warningImage);
         }
 
         @Override
         public int getItemCount() {
-            return postList.size();
+            return warningList.size();
         }
 }

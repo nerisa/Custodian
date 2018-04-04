@@ -40,6 +40,7 @@ import com.nerisa.thesis.model.Warning;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class WarningInfoActivity extends AppCompatActivity {
@@ -80,7 +81,7 @@ public class WarningInfoActivity extends AppCompatActivity {
             buttonWrapper.setVisibility(View.GONE);
         }
         TextView desc = (TextView) findViewById(R.id.desc);
-        date.setText(new Date(warning.getDate()).toString());
+        date.setText(new SimpleDateFormat("yyyy/MM/dd HH:mm").format(new Date(warning.getDate())));
         desc.setText(warning.getDesc());
 
         FirebaseStorage storage = FirebaseStorage.getInstance();

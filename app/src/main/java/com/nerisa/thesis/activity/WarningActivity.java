@@ -129,21 +129,20 @@ public class WarningActivity extends AppCompatActivity {
 
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);
-        TextView monumentCreator = (TextView) findViewById(R.id.creator);
+//        TextView monumentCreator = (TextView) findViewById(R.id.creator);
         ImageView monumentImage = (ImageView) findViewById(R.id.image);
 
         monumentAddress.setText(addresses.get(0).getAddressLine(0));
         monumentName.setText(monument.getName());
-        monumentCreator.setText(monument.getCreator());
+//        monumentCreator.setText(monument.getCreator());
         Glide.with(this /* context */)
                 .using(new FirebaseImageLoader())
                 .load(storageReference)
                 .into(monumentImage);
 
         recyclerView = (RecyclerView) findViewById(R.id.warning_recycler_view);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         mAdapter = new WarningAdapter(Glide.with(this), warningList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
