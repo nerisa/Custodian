@@ -140,4 +140,11 @@ public class MonumentInfoActivity extends AppCompatActivity {
         postsIntent.putExtra(Constant.MONUMENT, monument);
         startActivity(postsIntent);
     }
+
+    @Override
+    public void onBackPressed(){
+        Intent intent = new Intent(MonumentInfoActivity.this,MapsActivity.class);
+        startActivity(intent);
+        return;
+    }
 }

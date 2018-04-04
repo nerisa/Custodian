@@ -54,8 +54,6 @@ import org.json.JSONObject;
 import java.util.HashSet;
 
 
-//TODO figure out what actually happens on resume, stop, pause
-//TODO check location permission flow
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerDragListener {
 
@@ -498,15 +496,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void getNearbyMonuments(LatLng userPos){
-        //TODO put actual coordinates
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s",
                         userPos.latitude,
                         userPos.longitude);
-//        String url = String
-//                .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s",
-//                        "48.624061",
-//                        "2.444167");
+        custodianMonuments = new HashSet<Monument>();
         Log.i(TAG, "Getting nearby monuments using url " + url);
         JsonArrayRequest postRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>()
@@ -549,6 +543,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void getWikiMonuments(LatLng userPos){
         String wikiApi = String.format(Constant.WIKI_API_URL, userPos.latitude, userPos.longitude);
         Log.d(TAG + "/getWikiMonuments", "Getting wiki articles from " + wikiApi);
+        wikiMonuments = new HashSet<Monument>();
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, wikiApi, null,
                 new Response.Listener<JSONObject>()
                 {

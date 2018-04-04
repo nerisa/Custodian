@@ -49,9 +49,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private FirebaseAuth mAuth;
 
-    AlphaAnimation inAnimation;
-    AlphaAnimation outAnimation;
-
     View progressBarHolder;
 
     @Override
@@ -241,20 +238,4 @@ public class MainActivity extends AppCompatActivity implements
         editor.commit();
 
     }
-
-    private void showProgress(){
-        inAnimation = new AlphaAnimation(0f, 1f);
-        inAnimation.setDuration(200);
-        progressBarHolder.setAnimation(inAnimation);
-        progressBarHolder.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgress(){
-        outAnimation = new AlphaAnimation(1f, 0f);
-        outAnimation.setDuration(200);
-        progressBarHolder.setAnimation(outAnimation);
-        progressBarHolder.setVisibility(View.GONE);
-    }
-
-
 }

@@ -489,7 +489,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                             JSONObject tempResponse = (JSONObject) response.get("main");
                             Double temperature = tempResponse.getDouble("temp");
                             monument.setTemperature(temperature);
-                            temperatureView.setText("Current Surrounding Temperature: "+ Math.round(monument.getTemperature()) + " \u00b0C");
+                            temperatureView.setText(Math.round(monument.getTemperature()) + " \u00b0C");
                             Log.d(TAG,monument.getTemperature().toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -510,7 +510,7 @@ public class AddMonumentActivity extends AppCompatActivity {
 
 
     public void addMonument(View button){
-        Log.d(TAG, "button clicked");
+        Log.d(TAG, "Adding monument");
 
         EditText monumentName = (EditText) findViewById(R.id.monument_name);
 //        EditText monumentCreator = (EditText) findViewById(R.id.monument_creator);
@@ -616,9 +616,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     // error
-                    System.out.println(">>>>>>volley error below>>>>>>>>>>");
-                    error.printStackTrace();
-                    Log.d(TAG, error.toString());
+                    Log.d(TAG, "Error: " + error.getStackTrace());
                 }
             });
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
