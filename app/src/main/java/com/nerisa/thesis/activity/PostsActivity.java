@@ -1,6 +1,7 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.support.annotation.NonNull;
@@ -205,11 +206,16 @@ public class PostsActivity extends AppCompatActivity {
         String url = String
                 .format(Constant.SERVER_URL + Constant.MONUMENT_URL+"/%1$s" + Constant.POST_URL,
                         monument.getId());
-
+        Log.d(TAG, "Sending new post with url: " + url);
         EditText postDesc = (EditText) findViewById(R.id.new_post_desc);
         Post post = new Post();
         post.setDesc(postDesc.getText().toString());
         post.setDate(new Date().getTime());
+
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+        Long userId = sharedPreferences.getLong(Constant.USER_ID_KEY, 0);
+
+        post.setUserId(userId);
         Gson gson = new GsonBuilder().create();
         String json = gson.toJson(post);
         JSONObject jsonObj = null;

@@ -10,6 +10,7 @@ public class Post {
 
     private String desc;
     private Long date;
+    private long userId;
 
     public Post(){}
 
@@ -32,5 +33,13 @@ public class Post {
 
     public void setDate(Long date) {
         this.date = date;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 }

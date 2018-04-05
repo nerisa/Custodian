@@ -31,4 +31,5 @@
     <string name="no_warnings_to_verify">You have to become a custodian to verify see the unverified warnings.</string>
     <string name="provide_image">Monument Photo</string>
     <string name="provide_noise">Please record the surrounding noise</string>
+    <string name="expertise_level">My expertise</string>
 </resources>

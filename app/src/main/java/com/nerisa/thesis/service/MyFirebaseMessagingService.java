@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
@@ -91,21 +92,29 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 //    private void handleDataMessage(JSONObject json) {
         Log.d(TAG, "push json: " + json.toString());
 
-        Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>");
-
         try {
             if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
-                Intent pushNotification = new Intent(Constant.PUSH_NOTIFICATION);
-                pushNotification.putExtra(Constant.DATA, json.getString("monument"));
-                LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
+                if(json.getString("type").equals("incentive")){
+                    SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(Constant.LEVEL_KEY, json.getString("level"));
+                    editor.commit();
+                } else {
+                    Intent pushNotification = new Intent(Constant.PUSH_NOTIFICATION);
+                    pushNotification.putExtra(Constant.DATA, json.getString("monument"));
+
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
+                }
 
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
-                resultIntent.putExtra(Constant.DATA, json.getString("monument"));
+                if(!json.getString("type").equals("incentive")) {
+                    Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+                    resultIntent.putExtra(Constant.DATA, json.getString("monument"));
 
-                showNotificationMessage(getApplicationContext(), notification.getTitle(),notification.getBody(),json.getLong("timeStamp"), resultIntent);
+                    showNotificationMessage(getApplicationContext(), notification.getTitle(), notification.getBody(), json.getLong("timeStamp"), resultIntent);
+                }
             }
         } catch (JSONException e) {
             Log.e(TAG, "Json Exception: " + e.getMessage());

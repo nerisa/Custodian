@@ -62,37 +62,37 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         // TODO: Implement this method to send token to your app server.
         SharedPreferences pref = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF, 0);
         Long userId = pref.getLong(Constant.USER_ID_KEY, 0);
-        String url = Constant.SERVER_URL + Constant.USER_URL + "/" + userId;
-        String userEmail = pref.getString(Constant.USER_EMAIL_KEY, "");
-        User user = new User(userEmail, token);
+        if(userId != 0) {
+            String url = Constant.SERVER_URL + Constant.USER_URL + "/" + userId;
+            String userEmail = pref.getString(Constant.USER_EMAIL_KEY, "");
+            User user = new User(userEmail, token);
 
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(user);
-        JSONObject jsonObj = null;
-        try {
-            jsonObj = new JSONObject(json);
-        } catch (JSONException e){
-            Log.d(TAG,"exception");
-        }
-
-        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.PUT, url, jsonObj,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // response
-                        Log.d(TAG, response.toString());
-
-                    }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // error
-                Log.d(TAG, error.toString());
+            Gson gson = new GsonBuilder().create();
+            String json = gson.toJson(user);
+            JSONObject jsonObj = null;
+            try {
+                jsonObj = new JSONObject(json);
+            } catch (JSONException e) {
+                Log.d(TAG, "exception");
             }
-        });
-        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
+
+            JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.PUT, url, jsonObj,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // response
+                            Log.d(TAG, response.toString());
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // error
+                    Log.d(TAG, error.toString());
+                }
+            });
+            AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+        }
     }
 
     private void storeRegIdInPref(String token) {

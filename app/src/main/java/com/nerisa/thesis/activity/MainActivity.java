@@ -38,6 +38,8 @@ import com.nerisa.thesis.util.Utility;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener {
 
@@ -70,6 +72,12 @@ public class MainActivity extends AppCompatActivity implements
         mAuth = FirebaseAuth.getInstance();
         progressBarHolder = findViewById(R.id.progress_overlay);
 
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+        Map<String, ?> allEntries = preferences.getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            Log.d("map values", entry.getKey() + ": " + entry.getValue().toString());
+        }
+
     }
 
     @Override
@@ -86,6 +94,14 @@ public class MainActivity extends AppCompatActivity implements
                     Intent notification = new Intent(MainActivity.this, NotificationActivity.class);
                     notification.putExtra(Constant.MONUMENT, monumentId);
                     startActivity(notification);
+                } else if (getIntent().getExtras().getString("type").equals("incentive")){
+                    SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(Constant.LEVEL_KEY, getIntent().getExtras().getString("level"));
+                    editor.commit();
+                    Intent profile = new Intent(MainActivity.this, ProfileActivity.class);
+                    startActivity(profile);
+
                 }
 
             } else {
