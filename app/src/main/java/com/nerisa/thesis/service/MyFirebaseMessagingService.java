@@ -1,26 +1,18 @@
 package com.nerisa.thesis.service;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.nerisa.thesis.activity.MainActivity;
-import com.nerisa.thesis.activity.NotificationActivity;
 import com.nerisa.thesis.constant.Constant;
-import com.nerisa.thesis.R;
 import com.nerisa.thesis.util.NotificationUtils;
 
 import org.json.JSONException;
@@ -77,7 +69,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Handler handler = new Handler(Looper.getMainLooper());
             handler.post(new Runnable() {
                 public void run() {
-                    Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
                 }
             });
             pushNotification.putExtra("message", message);
@@ -109,7 +101,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             } else {
                 // app is in background, show the notification in notification tray
-                if(!json.getString("type").equals("incentive")) {
+                if(json.getString("type").equals("warning")) {
                     Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
                     resultIntent.putExtra(Constant.DATA, json.getString("monument"));
 

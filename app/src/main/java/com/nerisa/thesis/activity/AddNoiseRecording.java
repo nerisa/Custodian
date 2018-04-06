@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
@@ -46,6 +47,7 @@ import com.nerisa.thesis.R;
 import com.nerisa.thesis.constant.Constant;
 import com.nerisa.thesis.model.Monument;
 import com.nerisa.thesis.model.NoiseData;
+import com.nerisa.thesis.model.TemperatureData;
 import com.nerisa.thesis.util.Utility;
 
 import org.json.JSONException;
@@ -68,6 +70,7 @@ public class AddNoiseRecording extends AppCompatActivity {
     private MediaPlayer mPlayer = null;
     private static GoogleSignInClient mGoogleSignInClient;
     private static List<Address> addresses;
+    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?APPID=f4e5b61f71a2ee7595ffa19d67e8aea2&units=metric";
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -129,6 +132,8 @@ public class AddNoiseRecording extends AppCompatActivity {
                 .using(new FirebaseImageLoader())
                 .load(storageReference)
                 .into(monumentImage);
+        getTemperature(monument.getLatitude(), monument.getLongitude());
+
         mNoiseFileName = getExternalCacheDir().getAbsolutePath();
     }
 
@@ -306,6 +311,40 @@ public class AddNoiseRecording extends AppCompatActivity {
                     public void onResponse(JSONObject response) {
                         // response
                         Log.d(TAG, "Noise data added successfully for this monument");
+                        uploadTemperatureData();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // error
+                Log.d(TAG, "Error: " + error.getMessage());
+            }
+        });
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+    }
+
+    private void uploadTemperatureData(){
+        TemperatureData temperatureData = new TemperatureData(monument.getTemperature(), new Date().getTime());
+        String url = Constant.SERVER_URL + Constant.MONUMENT_URL + "/" + monument.getId() + Constant.TEMPERATURE_URL;
+        Log.d(TAG,"Posting temperature data using url: " + url);
+
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(temperatureData);
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(json);
+        } catch (JSONException e){
+            Log.d(TAG,"exception");
+        }
+
+        Log.d(TAG, "JSON body for request: " + jsonObj.toString());
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObj,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d(TAG, "Temperature data added successfully for this monument");
                         Intent intent = new Intent(AddNoiseRecording.this, MonumentInfoActivity.class);
                         intent.putExtra(Constant.MONUMENT, monument);
                         startActivity(intent);
@@ -320,6 +359,7 @@ public class AddNoiseRecording extends AppCompatActivity {
             }
         });
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
+
     }
 
     @Override
@@ -357,5 +397,39 @@ public class AddNoiseRecording extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void getTemperature(double latitude, double longitude){
+        String tag_json_obj = "json_obj_req";
+        String url = WEATHER_API_URL + "&lat=" + latitude + "&lon=" + longitude;
+        final TextView temperatureView = (TextView) findViewById(R.id.temperature);
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, response.toString());
+                        try {
+                            JSONObject tempResponse = (JSONObject) response.get("main");
+                            Double temperature = tempResponse.getDouble("temp");
+                            monument.setTemperature(temperature);
+                            temperatureView.setText(Math.round(monument.getTemperature()) + " \u00b0C");
+                            Log.d(TAG,monument.getTemperature().toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                // hide the progress dialog
+            }
+
+        });
+        // Adding request to request queue
+        AppController.getInstance(getApplicationContext()).addToRequestQueue(jsonObjReq,tag_json_obj);
     }
 }
