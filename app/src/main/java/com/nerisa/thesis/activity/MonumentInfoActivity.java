@@ -1,8 +1,10 @@
 package com.nerisa.thesis.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,15 +13,22 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
@@ -37,6 +46,8 @@ public class MonumentInfoActivity extends AppCompatActivity {
     private static GoogleSignInClient mGoogleSignInClient;
     private static Monument monument;
     private static List<Address> addresses;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private Location userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +72,6 @@ public class MonumentInfoActivity extends AppCompatActivity {
             Log.d(TAG, String.valueOf(monument.getLatitude()));
             Log.d(TAG, String.valueOf(monument.getMonumentPhoto()));
         }
-
-
 
         Geocoder geocoder = new Geocoder(MonumentInfoActivity.this);
         try{
@@ -89,8 +98,15 @@ public class MonumentInfoActivity extends AppCompatActivity {
                 .load(storageReference)
                 .into(monumentImage);
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-    }
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constant.SHARED_PREF,0);
+        Long userMonumentId = sharedPreferences.getLong(Constant.MONUMENT_ID_KEY, 0);
+        if(userMonumentId != monument.getId()){
+            Button addDataButton = (Button) findViewById(R.id.add_data);
+            addDataButton.setVisibility(View.GONE);
+        }
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -146,5 +162,46 @@ public class MonumentInfoActivity extends AppCompatActivity {
         Intent intent = new Intent(MonumentInfoActivity.this,MapsActivity.class);
         startActivity(intent);
         return;
+    }
+
+    public void isUserNearby(View view) {
+        try {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            System.out.println(">>>>>>>>>>>>>>>");
+                            if (location != null) {
+                                userLocation = location;
+                                float[] distanceResult = new float[5];
+                                Location.distanceBetween(monument.getLatitude(), monument.getLongitude(), userLocation.getLatitude(), userLocation.getLongitude(), distanceResult);
+                                System.out.println(distanceResult[0]);
+                                if(distanceResult[0] <= 10.0){
+                                    addData();
+                                } else {
+                                    Toast.makeText(MonumentInfoActivity.this, "Please go near your monument to provide the data", Toast.LENGTH_LONG)
+                                            .show();
+                                }
+                            }
+                        }
+                    });
+
+
+        }catch (SecurityException e) {
+            Log.d(TAG, "Error: " + e.getMessage());
+            Toast.makeText(MonumentInfoActivity.this, "Location permission are not turned on for this app.", Toast.LENGTH_LONG)
+                    .show();
+        }catch (IllegalArgumentException e) {
+            Log.d(TAG, "Error: " + e.getMessage());
+            Toast.makeText(MonumentInfoActivity.this, "Please try again later.", Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    private void addData(){
+        Intent noiseActivity = new Intent(MonumentInfoActivity.this, AddNoiseRecording.class);
+        noiseActivity.putExtra(Constant.MONUMENT, monument);
+        startActivity(noiseActivity);
     }
 }

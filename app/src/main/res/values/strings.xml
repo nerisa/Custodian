@@ -28,8 +28,13 @@
     <string name="posts_none">Noone has said anything about this monument yet.</string>
     <string name="action_verify">Verify</string>
     <string name="action_false">False alarm</string>
-    <string name="no_warnings_to_verify">You have to become a custodian to verify see the unverified warnings.</string>
+    <string name="no_warnings_to_verify">You have to become a custodian to see the unverified warnings for your monument.</string>
     <string name="provide_image">Monument Photo</string>
     <string name="provide_noise">Please record the surrounding noise</string>
     <string name="expertise_level">My expertise</string>
+    <string name="my_monument">My monumnent</string>
+    <string name="add_data">Add additional data</string>
+    <string name="add_info">Add information</string>
+    <string name="no_expertise">Become a custodian to gain expertise levels.</string>
+    <string name="no_monument">Become a custodian and add your own monument.</string>
 </resources>

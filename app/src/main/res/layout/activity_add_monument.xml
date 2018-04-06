@@ -234,7 +234,6 @@
             android:onClick="addMonument"
             android:text="@string/add_monument_button" />
 
-        <include layout="@layout/progress_layout"/>
     </LinearLayout>
 
 </ScrollView>
