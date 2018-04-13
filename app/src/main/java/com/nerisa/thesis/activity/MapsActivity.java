@@ -91,6 +91,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static int UPDATE_INTERVAL = 10*60*1000; // 10 min
     private static int FATEST_INTERVAL = 5*60*1000; // 5 min
     private static int DISPLACEMENT = 250; // 250 meters
+    private static int NEARBY_DISTANCE = 5000; //5 km
 
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -497,9 +498,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getNearbyMonuments(LatLng userPos){
         String url = String
-                .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s",
+                .format(Constant.SERVER_URL + Constant.MONUMENT_LIST_URL +"?lat=%1$s&lon=%2$s&within=%3$s",
                         userPos.latitude,
-                        userPos.longitude);
+                        userPos.longitude,
+                        NEARBY_DISTANCE);
         custodianMonuments = new HashSet<Monument>();
         Log.i(TAG, "Getting nearby monuments using url " + url);
         JsonArrayRequest postRequest = new JsonArrayRequest(Request.Method.GET, url, null,
@@ -541,7 +543,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void getWikiMonuments(LatLng userPos){
-        String wikiApi = String.format(Constant.WIKI_API_URL, userPos.latitude, userPos.longitude);
+        String wikiApi = String.format(Constant.WIKI_API_URL, NEARBY_DISTANCE, userPos.latitude, userPos.longitude);
         Log.d(TAG + "/getWikiMonuments", "Getting wiki articles from " + wikiApi);
         wikiMonuments = new HashSet<Monument>();
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, wikiApi, null,

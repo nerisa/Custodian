@@ -171,7 +171,6 @@ public class MonumentInfoActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
-                            System.out.println(">>>>>>>>>>>>>>>");
                             if (location != null) {
                                 userLocation = location;
                                 float[] distanceResult = new float[5];
