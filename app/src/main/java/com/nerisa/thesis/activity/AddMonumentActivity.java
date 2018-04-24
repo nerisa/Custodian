@@ -30,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -64,6 +65,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 public class AddMonumentActivity extends AppCompatActivity {
@@ -616,9 +618,13 @@ public class AddMonumentActivity extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     // error
-                    Log.d(TAG, "Error: " + error.getStackTrace());
+                    Log.d(TAG, "Error: " + error.getMessage());
                 }
             });
+            postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    Constant.VOLLEY_TIMEOUT_MS,
+                    Constant.VOLLEY_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         }
     }

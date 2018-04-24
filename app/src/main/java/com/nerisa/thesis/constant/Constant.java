@@ -7,7 +7,7 @@ package com.nerisa.thesis.constant;
 public class Constant {
     public static final String MONUMENT = "monument";
     public static final String WARNING = "warning";
-    public static final String SERVER_URL = "http://157.159.43.45:8080";
+    public static final String SERVER_URL = "http://172.21.6.77:8080";
     public static final String MONUMENT_URL = "/monument";
     public static final String MONUMENT_LIST_URL = "/monuments";
     public static final String WARNING_URL = "/warning";
@@ -36,5 +36,10 @@ public class Constant {
 
     public static final String MONUMENT_INFO_PRESENT = "from wiki info";
     public final static String UNVERIFIED_WARNING = "unverified";
+
+    public static final int VOLLEY_MAX_RETRIES = 0;
+    public static final int VOLLEY_TIMEOUT_MS = 50000;
+
+    public static final float NEARBY_DISTANCE = 100.0f;
 
 }

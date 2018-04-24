@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -52,6 +53,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks,
@@ -450,6 +452,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e("Error.Response", error.toString());
                 }
             });
+            postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    Constant.VOLLEY_TIMEOUT_MS,
+                    Constant.VOLLEY_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         } else if (marker.getType() == MarkerTag.MarkerType.MONUMENT) {
             Long monumentId = marker.getMonumentId();
@@ -477,6 +483,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e("Error.Response", error.toString());
                 }
             });
+            postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    Constant.VOLLEY_TIMEOUT_MS,
+                    Constant.VOLLEY_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest, "tag");
         }
     }
@@ -539,6 +549,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e(TAG, error.toString());
             }
         });
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                Constant.VOLLEY_TIMEOUT_MS,
+                Constant.VOLLEY_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
     }
 
@@ -580,6 +594,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e(TAG, error.toString());
             }
         });
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                Constant.VOLLEY_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
     }
 
@@ -620,6 +638,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             for (Monument monument : custodianMonuments) {
                 Log.d(TAG + "/displayNearbyMonuments", "Displaying monument: " + monument.getName());
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                System.out.println(monument.getId());
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                 LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());
                 Marker monumentMarker = mMap.addMarker(new MarkerOptions()
                         .position(monumentPos)

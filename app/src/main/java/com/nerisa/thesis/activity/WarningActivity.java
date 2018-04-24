@@ -124,8 +124,8 @@ public class WarningActivity extends AppCompatActivity {
         }
         FirebaseStorage storage = FirebaseStorage.getInstance();
         Log.d("check this.............", monument.getMonumentPhoto());
-//        StorageReference storageReference = storage.getReferenceFromUrl(monument.getMonumentPhoto());
-        StorageReference storageReference = storage.getReferenceFromUrl("https://firebasestorage.googleapis.com/v0/b/custodian-3e7c1.appspot.com/o/images%2Fb6cad247-9053-4956-82eb-cb9e1c6bd5cb?alt=media&token=ab602c71-302b-4413-b997-2b33ed05b1d9");
+        StorageReference storageReference = storage.getReferenceFromUrl(monument.getMonumentPhoto());
+//        StorageReference storageReference = storage.getReferenceFromUrl("https://firebasestorage.googleapis.com/v0/b/custodian-3e7c1.appspot.com/o/images%2Fb6cad247-9053-4956-82eb-cb9e1c6bd5cb?alt=media&token=ab602c71-302b-4413-b997-2b33ed05b1d9");
 
         TextView monumentAddress = (TextView) findViewById(R.id.address);
         TextView monumentName = (TextView) findViewById(R.id.name);

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -39,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener {
@@ -161,6 +163,8 @@ public class MainActivity extends AppCompatActivity implements
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
+            Log.w(TAG, "signInResult:failed code=" + e.getMessage());
+            e.printStackTrace();
 
             Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
 
@@ -235,6 +239,10 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(
+                (int) TimeUnit.SECONDS.toMillis(20),
+                Constant.VOLLEY_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         AppController.getInstance(getApplicationContext()).addToRequestQueue(postRequest,"tag");
     }
 

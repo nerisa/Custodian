@@ -176,7 +176,7 @@ public class MonumentInfoActivity extends AppCompatActivity {
                                 float[] distanceResult = new float[5];
                                 Location.distanceBetween(monument.getLatitude(), monument.getLongitude(), userLocation.getLatitude(), userLocation.getLongitude(), distanceResult);
                                 System.out.println(distanceResult[0]);
-                                if(distanceResult[0] <= 10.0){
+                                if(distanceResult[0] <= Constant.NEARBY_DISTANCE){
                                     addData();
                                 } else {
                                     Toast.makeText(MonumentInfoActivity.this, "Please go near your monument to provide the data", Toast.LENGTH_LONG)
