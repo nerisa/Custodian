@@ -523,6 +523,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Log.d(TAG, "Nearby monuments: " + response.toString());
                         for(int i = 0; i< response.length(); i++){
                             try {
+
                                 Monument monument = Monument.mapResponse((JSONObject) response.get(i));
                                 custodianMonuments.add(monument);
 //                                LatLng monumentPos = new LatLng(monument.getLatitude(), monument.getLongitude());

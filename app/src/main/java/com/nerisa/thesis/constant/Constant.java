@@ -7,7 +7,7 @@ package com.nerisa.thesis.constant;
 public class Constant {
     public static final String MONUMENT = "monument";
     public static final String WARNING = "warning";
-    public static final String SERVER_URL = "http://172.21.6.77:8080";
+    public static final String SERVER_URL = "http://206.189.172.86:8080/thesis-datarepo_war";
     public static final String MONUMENT_URL = "/monument";
     public static final String MONUMENT_LIST_URL = "/monuments";
     public static final String WARNING_URL = "/warning";

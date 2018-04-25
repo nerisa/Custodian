@@ -43,14 +43,16 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".activity.MapsActivity" />
+        <activity android:name=".activity.MapsActivity"
+            android:noHistory="true" />
         <activity
             android:name=".activity.AddMonumentActivity"
             android:label="Add Your Monument"
             android:parentActivityName=".activity.MapsActivity" />
         <activity
             android:name=".activity.ProfileActivity"
-            android:label="Your Profile" />
+            android:label="Your Profile"
+            android:parentActivityName=".activity.MapsActivity" />
         <activity
             android:name=".activity.NotificationActivity"
             android:label="Notifications"
@@ -62,15 +64,15 @@
         <activity
             android:name=".activity.WarningActivity"
             android:label="Warnings"
-            android:parentActivityName=".activity.MonumentInfoActivity" />
+            android:parentActivityName=".activity.MapsActivity" />
         <activity
             android:name=".activity.PostsActivity"
             android:label="Posts"
-            android:parentActivityName=".activity.MonumentInfoActivity" />
+            android:parentActivityName=".activity.MapsActivity" />
         <activity
             android:name=".activity.WarningInfoActivity"
-            android:label="Warning Information" />
-        <!-- android:parentActivityName=".activity.WarningActivity" /> -->
+            android:label="Warning Information"
+            android:parentActivityName=".activity.MapsActivity" />
 
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>
