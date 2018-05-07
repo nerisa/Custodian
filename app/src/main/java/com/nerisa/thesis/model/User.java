@@ -18,6 +18,16 @@ public class User implements Parcelable {
     private boolean custodian;
     private long monumentId;
 
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    private String level;
+
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
         public User createFromParcel(Parcel in) {
             return new User(in);
