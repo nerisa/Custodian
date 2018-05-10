@@ -259,7 +259,8 @@ public class MainActivity extends AppCompatActivity implements
         if(user.isCustodian()){
             editor.putLong(Constant.MONUMENT_ID_KEY, user.getMonumentId());
         }
-        if(user.getLevel() != null || !user.getLevel().isEmpty()){
+        String level = user.getLevel();
+        if(level != null && !level.isEmpty()){
             editor.putString(Constant.LEVEL_KEY, user.getLevel());
         }
         editor.commit();

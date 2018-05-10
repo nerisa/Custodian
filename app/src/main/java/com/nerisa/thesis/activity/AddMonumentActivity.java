@@ -98,6 +98,8 @@ public class AddMonumentActivity extends AppCompatActivity {
     private static boolean isImageUploadDone = false;
     private static boolean isAudioUploadDone = false;
 
+    View progressBarHolder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -154,6 +156,7 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         mImageView = (ImageView) findViewById(R.id.monument_view);
         mStorageRef = FirebaseStorage.getInstance().getReference();
+        progressBarHolder = findViewById(R.id.progress_overlay);
     }
 
     @Override
@@ -523,6 +526,7 @@ public class AddMonumentActivity extends AppCompatActivity {
         monument.setDesc(monumentDesc.getText().toString());
         isAudioUploadDone = Boolean.FALSE;
         isImageUploadDone = Boolean.FALSE;
+        Utility.animateView(progressBarHolder, View.VISIBLE, 0.4f, 200);
         uploadImageToFirebase();
         uploadAudioToFirebase();
         return;
@@ -619,6 +623,9 @@ public class AddMonumentActivity extends AppCompatActivity {
                 public void onErrorResponse(VolleyError error) {
                     // error
                     Log.d(TAG, "Error: " + error.getMessage());
+                    Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
+                    Toast.makeText(AddMonumentActivity.this, "The monument could not be added. Please try again later.", Toast.LENGTH_LONG)
+                            .show();
                 }
             });
             postRequest.setRetryPolicy(new DefaultRetryPolicy(
@@ -638,7 +645,7 @@ public class AddMonumentActivity extends AppCompatActivity {
         editor.putBoolean(Constant.USER_CUSTODIAN_KEY, Boolean.TRUE);
         editor.putLong(Constant.MONUMENT_ID_KEY, monument.getId());
         editor.apply();
-
+        Utility.animateView(progressBarHolder, View.GONE, 0 ,200);
         Intent monumentInfo = new Intent(AddMonumentActivity.this, MonumentInfoActivity.class);
         monumentInfo.putExtra(Constant.MONUMENT, monument);
         startActivity(monumentInfo);

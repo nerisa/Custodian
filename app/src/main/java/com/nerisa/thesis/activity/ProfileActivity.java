@@ -146,7 +146,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void getMonumentData(){
         final Long monumentId = preferences.getLong(Constant.MONUMENT_ID_KEY,0);
-        String url = Constant.SERVER_URL + Constant.MONUMENT_URL + "/" + monumentId;
+        String url = Constant.SERVER_URL + Constant.MONUMENT_URL + "/" + monumentId + "?compact=true";
         Log.d(TAG,"Getting monument id with url: " + url);
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+<ScrollView
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
@@ -234,7 +237,11 @@
             android:onClick="addMonument"
             android:text="@string/add_monument_button" />
 
+
     </LinearLayout>
 
+
 </ScrollView>
+    <include layout="@layout/progress_layout"/>
+</RelativeLayout>
 

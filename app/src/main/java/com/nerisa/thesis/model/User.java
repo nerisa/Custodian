@@ -17,15 +17,6 @@ public class User implements Parcelable {
     private String token;
     private boolean custodian;
     private long monumentId;
-
-    public String getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
     private String level;
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -82,6 +73,14 @@ public class User implements Parcelable {
 
     public void setCustodian(boolean custodian) {
         this.custodian = custodian;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
     }
 
     @Override
